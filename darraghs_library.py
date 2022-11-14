@@ -5,9 +5,6 @@ Darragh's Library is a Python module containing various functions,
 classes, etc. It contains bundles of code that can be used repeatedly
 in many different programs, and it makes working with Python simpler and
 more efficient.
-
-
-hi there
 """
 
 __author__ = "Darragh Luby"
@@ -555,7 +552,7 @@ class Lorem:
         
         require_type(words, int, None, arg_name="words", func_name="Lorem.sentence()")
         
-        if words is not None:
+        if words is None:
             sentence_len = random.randint(8, 20)
         else:
             sentence_len = words
@@ -584,7 +581,7 @@ class Lorem:
         return " ".join(_sentence)
 
     @classmethod
-    def paragraph(cls, ) -> str:
+    def paragraph(cls) -> str:
         """
         Returns a paragraph with (4 to 7) sentences
         
@@ -1853,7 +1850,7 @@ class xrange:
 
 if __name__ == "__main__":
     
-    helpme()
+    pass
     
     # TODO: Create menu function
     # TODO: Fix "see line" statements
