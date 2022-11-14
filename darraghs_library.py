@@ -1881,6 +1881,9 @@ def menu(*args,
         menu(lst)  
     """
     
+    if len(args) < 1:
+        raise ValueError("menu() expected 1 argument, got none")
+    
     require_type(spacing, int, None, arg_name="spacing", func_name="menu()")
     require_type(verticalspacing, int, None, arg_name="verticalspacing", func_name="menu()")
     require_type(title, str, None, arg_name="title", func_name="menu()")
@@ -1962,7 +1965,7 @@ def menu(*args,
 
 if __name__ == "__main__":
     
-    print(False)
+    pass
     
     # TODO: Fix "see line" statements
     # TODO: xrange testing
