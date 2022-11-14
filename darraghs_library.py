@@ -11,7 +11,7 @@ __author__ = "Darragh Luby"
 __email__ = "darraghluby@gmail.com"
 __version__ = "0.0.1"
 
-# All modules below are in the Python standard library
+# Modules below are in the Python standard library
 import time
 import random
 import os
@@ -539,15 +539,24 @@ class Lorem:
         return random.choice(cls.WORDS)
 
     @classmethod
-    def sentence(cls) -> str:
+    def sentence(cls, words: Optional[int] = None) -> str:
         """
         Returns a formatted sentence with (8 to 20) words
         with punctuation marks, capitalised letters, etc.
 
+        Optional arguments:
+            words (bool): Specify a length for the sentence
+            
         Example use: random_sentence = lorem.sentence()'
         """
         
-        sentence_len = random.randint(8, 20)
+        require_type(words, int, None, arg_name="words", func_name="Lorem.sentence()")
+        
+        if words is not None:
+            sentence_len = random.randint(8, 20)
+        else:
+            sentence_len = words
+            
         _sentence = [cls.word() for _ in range(sentence_len)]
         
         punc_marks = [
@@ -572,7 +581,7 @@ class Lorem:
         return " ".join(_sentence)
 
     @classmethod
-    def paragraph(cls) -> str:
+    def paragraph(cls, ) -> str:
         """
         Returns a paragraph with (4 to 7) sentences
         
