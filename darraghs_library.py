@@ -1962,8 +1962,7 @@ def menu(*args,
 
 if __name__ == "__main__":
     
-    lst = ["option 1", "option 2", "option 3"]
-    menu(*lst, label=True)
+    print(False)
     
     # TODO: Fix "see line" statements
     # TODO: xrange testing
