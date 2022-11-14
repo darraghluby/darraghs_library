@@ -1881,6 +1881,13 @@ def menu(*args,
         menu(lst)  
     """
     
+    require_type(spacing, int, None, arg_name="spacing", func_name="menu()")
+    require_type(verticalspacing, int, None, arg_name="verticalspacing", func_name="menu()")
+    require_type(title, str, None, arg_name="title", func_name="menu()")
+    require_type(label, bool, arg_name="label", func_name="menu()")
+    require_type(border, str, arg_name="border", func_name="menu()")
+    require_type(position, str, arg_name="position", func_name="menu()")
+    
     spacing = 0 if spacing is None else spacing
     title = "" if title is None else title
     
@@ -1956,9 +1963,8 @@ def menu(*args,
 if __name__ == "__main__":
     
     lst = ["option 1", "option 2", "option 3"]
-    menu(*lst,  border="double")
+    menu(*lst, label=True)
     
-    # TODO: Create menu function
     # TODO: Fix "see line" statements
     # TODO: xrange testing
     # TODO: for_each testing
