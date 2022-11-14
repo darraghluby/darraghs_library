@@ -1705,12 +1705,9 @@ def for_each(obj: Iterable, func: Callable, *args, **kwargs) -> Any:
     lst = for_each([4, 5, 6], pow, 3)
     """
     
-    returns = []
+    returns = tuple(func(i, *args, **kwargs) for i in obj)
     
-    for i in obj:
-        returns.append(func(i, *args, **kwargs))
-    
-    return tuple(returns)
+    return returns
 
 
 class xrange:
@@ -1846,11 +1843,120 @@ class xrange:
     def __repr__(self):
         return f"xrange({self.first}, {self.end}, {self.step})"
 
+
+def menu(*args,
+         spacing: Optional[int] = 2,
+         verticalspacing: Optional[int] = 1,
+         title: Optional[str] = " Menu ",
+         label: bool = False,
+         border: str = "default",
+         position: str = "left",
+         ) -> None:
+    
+    """
+    Print out a nice menu with this function, with lots of customisation
+    
+    Arguments:
+        Positional arguments will be printed out as an "option" in the menu
+    
+    Optional keyword arguments:
+        spacing (int): The spaces on the left & right of the menu
+        verticalspacing (int): The spaces on the top & bottom of the menu
+        title (str): The name of the menu (displays at the top)
+        label (bool): Choose to display menu option numbers
+        
+        border (str): The style of border you would like
+            border options:
+            default, clean, bold, wiggle, double
             
+        position (str): Choose where to position the menu options
+            position options:
+            left, right, center
+        
+    If you want to pass a collection (list, tuple, dict, set, etc.) into
+    this function, use the built-in unpacking operator (*) before the argument
+    
+    Example use:
+        lst = ["option 1", "option 2", "option 3"]
+        menu(lst)  
+    """
+    
+    spacing = 0 if spacing is None else spacing
+    title = "" if title is None else title
+    
+    position = {
+        "left": "ljust",
+        "right": "rjust",
+        "center": "center",
+    }.get(position, "ljust")
+    
+    chosen = {
+        "bold": 0,
+        "clean": 1,
+        "default": 2,
+        "wiggle": 3,
+        "double": 4,
+    }.get(border, 1)
+    
+    horizontal = ["━", "─", "-", "~", "═"]
+    vertical = ["┃", "│", "¦", "¦", "║"]
+    topright = ["┓", "┐", "+", "~", "╗"]
+    topleft = ["┏", "┌", "+", "~", "╔"]
+    bottomright = ["┛", "┘", "+", "~", "╝"]
+    bottomleft = ["┗", "└", "+", "~", "╚"]
+
+    if label:
+        args = tuple(
+            f"{str(number).zfill(len(str(len(args))))}" + ") "
+            + str(arg) for number, arg in enumerate(args, 1)
+        )
+    else:
+        args = tuple(str(arg) for arg in args)
+        
+    minlen = len(max(args, key=len))   
+
+    def printverticalspaces() -> None:
+        if verticalspacing is not None:
+            for i in range(verticalspacing):
+                print(
+                    vertical[chosen]
+                    + (spacing * " ")
+                    + (" " * minlen)
+                    + (spacing * " ")
+                    + vertical[chosen]
+                )
+            
+    print(
+        topleft[chosen]
+        + f"{title}".center(minlen + spacing*2, horizontal[chosen])
+        + topright[chosen]
+    )
+    
+    printverticalspaces()
+
+    for i in args:
+        
+        print(
+            vertical[chosen] 
+            + (spacing * " ")
+            + eval(f"'{i}'.{position}({minlen})")
+            + (spacing * " ")
+            + vertical[chosen]
+        )
+        
+    printverticalspaces()
+    
+    print(
+        bottomleft[chosen]
+        + horizontal[chosen] * (minlen + spacing * 2)
+        + bottomright[chosen]
+    )
+
 
 if __name__ == "__main__":
     
-    pass
+    lst = ["option 1", "option 2", "option 3"]
+    menu(*lst,  border="double")
     
     # TODO: Create menu function
     # TODO: Fix "see line" statements
