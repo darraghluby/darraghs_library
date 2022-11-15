@@ -17,7 +17,7 @@ import random
 import os
 import re
 import sys
-
+from collections import UserString
 from functools import wraps
 
 # For 'install_module()' function (see line 270)
@@ -969,63 +969,102 @@ def huge_text(text: str, spacegap: int = 3) -> str:
         ["".join([chars[char][index] for char in text]) for index in range(6)]
     )      
 
-class StringMethods(str):
-
+class StringMethods(UserString):
+    
     """
     StringMethods class
-
-    A class inheriting from the built in python 'str' class,
-    but with extended methods for string analysis, password checking etc.
+    
+    A class inheriting from the UserString class from the collections module.
+    This class has extended methods for string analysis, password checking etc,
+    and also has the ability to create mutable strings, with all the same methods
+    as regular strings.
     
     Initializing StringMethods class:
     
     Example:
     string = StringMethods("Hello world")
+    
+    Note:
+    You can make the string mutable if you wish, simply use the keyword
+    argument "mutable" when initializing the object, for example:
+    string = StringMethods("Hello world", mutable=True)
+    
+    However, by doing this, the way you use some methods will change
+    (see StringMethods.__init__ doc for more information)
+    
+    Inspiration:
+        Link [1]: https://www.geeksforgeeks.org/collections-userstring-in-python/
     """
-
-    def __init__(self, string: str):
-
+    
+    def __init__(self, seq: str, mutable: bool = False) -> None:
         """
         StringMethods class constructor
 
         Arguments:
         string (str): The string
-
-        See help(type(self)) for accurate signature.
+        
+        Optional arguments:
+        mutable (bool): Choose whether to make the string mutable
+        
+        Note:
+        If you make the string mutable, method behaviour is altered.
+        Instead of the following example (in the case of a regular, immutable string):
+            string = string.shuffle()
+        It would be (in the case of a mutable string):
+            string.shuffle() -> This will change the value in place
+            
+        This would be the case with all methods that return a string;
+        Other methods, such as .contains() (which returns a boolean value),
+        will still work as normal
         """
+        
+        require_type(mutable, bool, arg_name="mutable", func_name="StringMethods.__init__")
         
         # Initialize inherited class
-        super().__init__()
+        super().__init__(seq)
         
-        self.string = str(string)
-        self.length = len(self)
-        self.chars = [i for i in self]
-        self.digits = "".join(i for i in self if i in "0123456789")
-        
-        self.alphalower = "".join(i for i in self if i.islower())
-        self.alphaupper = "".join(i for i in self if i.isupper())
-        
+        # Check if user activated mutable string
+        self.mutable = mutable
+    
+        # Instance variables
+        self.length = len(self.data)
+        self.len = self.length
+        self.charlist = [i for i in self.data]
+        self.digits = "".join(i for i in self.data if i in "0123456789")
+        self.alphalower = "".join(i for i in self.data if i.islower())
+        self.alphaupper = "".join(i for i in self.data if i.isupper())
         self.alpha = "".join(
-            i for i in self if i in self.alphalower + self.alphaupper
-        )
-        
+            i for i in self.data if i in self.alphalower + self.alphaupper
+        )    
         self.alphanum = "".join(
-            i for i in self if i in self.alpha + self.digits
+            i for i in self.data if i in self.alpha + self.digits
         )
-        
-        self.symbols = "".join(i for i in self if i not in self.alphanum)
-        self.binary = " ".join(format(ord(char), "b") for char in self)
-        
-    def shuffle(self) -> "StringMethods":
-        """ 
-        Shuffles the string in a random order and returns a new string
-
-        Example use:
-        print(string.shuffle())
+        self.other = "".join(i for i in self.data if i not in self.alphanum)
+        self.binary = " ".join(format(ord(char), "b") for char in self.data)
+    
+    def setmutable(self) -> None:
+        """
+        Manually sets the string to a mutable string
         """
         
-        return StringMethods("".join(random.sample(self, self.length)))
+        self.mutable = True
     
+    def checkmutable(self, new: Any) -> Optional[Any]:
+        """
+        Checks if user has enabled mutable string during initialization
+        
+        Arguments:
+        new (Any): The new version of "self.data" to be set or returned
+        """
+        
+        if self.mutable:
+            self.data = new
+            return None
+        
+        return new
+    
+    # ---------------- Bool Returns ----------------
+        
     def contains(self, char: str, casesensitive: bool = True) -> bool:
         """ 
         Returns True if given char is in the string,
@@ -1041,14 +1080,13 @@ class StringMethods(str):
         print(string.contains("h", casesensitive=False))
         """
         
-        require_type(casesensitive, bool,
-                     arg_name="casesensitive",
-                     func_name="StringMethods.contains()")
+        require_type(char, str, arg_name="char", func_name="StringMethods.contains()")
+        require_type(casesensitive, bool, arg_name="casesensitive", func_name="StringMethods.contains()")
         
         if not casesensitive:
-            return str(char).lower() in self.lower()
-        return str(char) in self
-
+            return char.lower() in self.data.lower()
+        return str(char) in self.data
+    
     def containsany(self, chars: Iterable, casesensitive: bool = True) -> bool:
         """ 
         Returns True if any given chars are in the string,
@@ -1064,16 +1102,15 @@ class StringMethods(str):
         print(string.containsany("hwokdbe", casesensitive=False))
         """
         
-        require_type(casesensitive, bool,
-                     arg_name="casesensitive",
-                     func_name="StringMethods.containsany()")
+        require_type(casesensitive, bool, arg_name="casesensitive", func_name="StringMethods.containsany()")
+        
         
         for char in chars:
             if casesensitive:
-                if str(char) in self:
+                if str(char) in self.data:
                     return True
             else:
-                if str(char).lower() in self.lower():
+                if str(char).lower() in self.data.lower():
                     return True
         return False
 
@@ -1084,7 +1121,8 @@ class StringMethods(str):
         Example use:
         print(string.hasdigit())
         """
-        return (self.containsany("0123456789"))
+        
+        return bool(self.digits)
     
     def haslower(self) -> bool: 
         """ 
@@ -1093,8 +1131,8 @@ class StringMethods(str):
         Example use:
         print(string.haslower())
         """
-
-        return (self.containsany("abcdefghijklmnopqrstuvwxyz"))
+        
+        return bool(self.alphalower)
     
     def hasupper(self) -> bool: 
         """ 
@@ -1104,18 +1142,18 @@ class StringMethods(str):
         print(string.hasupper())
         """
         
-        return (self.containsany("ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+        return bool(self.alphaupper)
     
     def hassymbol(self) -> bool:
         """ 
         Returns True if string has any symbols
-        [Everything but digits or lowercase / uppercase letters]
+        [Everything but alphanumeric characters]
         
         Example:
         print(string.hassymbol())
         """
-
-        return (True if len(self.symbols) > 0 else False)
+        
+        return bool(self.other)
     
     def haswhitespace(self) -> bool:
         """ 
@@ -1137,7 +1175,7 @@ class StringMethods(str):
 
         pattern = re.compile(r"\"?([-a-zA-Z\d.`?{}]+@\w+\.\w+)\"?")
         
-        if re.match(pattern, self):
+        if re.match(pattern, self.data):
             return True
         
         return False
@@ -1145,46 +1183,37 @@ class StringMethods(str):
     def isyes(self) -> bool:
         """ 
         Checks if string appears to be a positive response
-        Mainly intended for input validation
+        (Mainly intended for input validation)
 
         Example use:
         print(string.isyes())
         """
         
-        if self.lower() in (
+        if self.data.lower() in (
             "yes ye y sure mhm absolutely affirmative "
             "positive true certainly yas yup yip ok okay "
             "o.k. okie yeah yah aye alright indeed uh-huh "
-            "yis sey"
+            "yis sey ya ys yus yez yess k yaz yups "
         ).split(" "):
             return True
         
         return False
     
-    def removechar(self, char: str, casesensitive: bool = True) -> "StringMethods":
+    # ---------------- String Returns ----------------
+    
+    def shuffle(self) -> Optional[str]:
         """ 
-        Remove all instances of specified character from string 
-        
-        Arguments:
-        char (str): Character to remove
-
-        Optional arguments:
-        casesensitive (bool): Specify if uppercase and lowercase matters
+        Shuffles the string in a random order and returns a new string
 
         Example use:
-        print(string.removechar("w"))
+        print(string.shuffle())
         """
-        
-        char = str(char)
 
-        if casesensitive:
-            return StringMethods("".join(i for i in self if i != char))
-        else:
-            return StringMethods(
-                "".join(i for i in self if i.lower() != char.lower())
-            )
-        
-    def removechars(self, chars: Iterable, casesensitive: bool = True) -> "StringMethods":
+        return self.checkmutable(
+            "".join(random.sample(self.data, self.length))
+        )
+
+    def removechars(self, chars: Iterable, casesensitive: bool = True) -> Optional[str]:
         """
         Remove all instances of specified characters from string 
         
@@ -1195,20 +1224,23 @@ class StringMethods(str):
         casesensitive (bool): Specify if uppercase and lowercase matters
 
         Example use:
-        print(string.removechars("wol"))
+        print(string.removechars("a"))
+        print(string.removechars(["a", "b", "c"])
         """
+        
+        require_type(casesensitive, bool, arg_name="casesensitive", func_name="StringMethods.removechars()")
 
         chars = [str(char) for char in chars]
 
         if casesensitive:
-            return StringMethods("".join(i for i in self if i not in chars))
+            return self.checkmutable("".join(i for i in self.data if i not in chars))
         else:
-            return StringMethods(
-                "".join(i for i in self if i.lower() not in 
+            return self.checkmutable(
+                "".join(i for i in self.data if i.lower() not in 
                 [j.lower() for j in chars])
-            ) 
-    
-    def reverse(self) -> "StringMethods":
+            )
+
+    def reverse(self) -> Optional[str]:
         """ 
         Reverses a string 
         
@@ -1216,11 +1248,11 @@ class StringMethods(str):
         print(string.reverse())
         """
         
-        return StringMethods(self[::-1])
+        return self.checkmutable(self.data[::-1])
     
-    def up(self, amt: int = 1) -> "StringMethods":
+    def up(self, amt: int = 1) -> Optional[str]:
         """ 
-        Adds newlines to bottom of string 
+        Adds newlines to bottom of string (moving it "up")
         
         Optional arguments:
         amt (int): Amount of newlines to be added
@@ -1231,11 +1263,11 @@ class StringMethods(str):
         
         require_type(amt, int, arg_name="amt", func_name="StringMethods.up()")
         
-        return StringMethods(self + ("\n" * amt))
+        return self.checkmutable(self.data + ("\n" * amt))
     
-    def down(self, amt: int = 1) -> "StringMethods":
+    def down(self, amt: int = 1) -> Optional[str]:
         """ 
-        Adds newlines to top of string 
+        Adds newlines to top of string (moving it "down")
         
         Optional arguments:
         amt (int): Amount of newlines to be added
@@ -1244,15 +1276,13 @@ class StringMethods(str):
         print(string.down(3))
         """
         
-        require_type(amt, int,
-                     arg_name="amt",
-                     func_name="StringMethods.down()")
+        require_type(amt, int, arg_name="amt", func_name="StringMethods.down()")
         
-        return StringMethods(("\n" * amt) + self)
+        return self.checkmutable(("\n" * amt) + self.data)
     
-    def updown(self, amt: int = 1) -> "StringMethods":
+    def updown(self, amt: int = 1) -> Optional[str]:
         """ 
-        Adds newlines to top & bottom of string 
+        Adds newlines to top & bottom of string (moving it "up" & "down")
         
         Optional arguments:
         amt (int): Amount of newlines to be added
@@ -1261,33 +1291,11 @@ class StringMethods(str):
         print(string.updown(3))
         """
         
-        require_type(amt, int,
-                     arg_name="amt",
-                     func_name="StringMethods.updown()")
+        require_type(amt, int, arg_name="amt", func_name="StringMethods.updown()")
         
-        return StringMethods(("\n" * amt) + self + ("\n" * amt))
-    
-    def printchars(self, end: str = "\n") -> None:
-        """ 
-        Prints all characters in the string
+        return self.checkmutable(("\n" * amt) + self.data + ("\n" * amt))
 
-        Optional arguments:
-        end (str): Specify character at end of string
-
-        Example use:
-        string.printchars()
-        """
-        
-        require_type(end, str,
-                     arg_name="end",
-                     func_name="StringMethods.printchars()")
-        
-        for index, char in enumerate(self, 1):
-            if index == len(self):
-                end = "\n"
-            print(char, end=end)
-            
-    def expand(self, spaces: int = 1, fill: str = " ") -> "StringMethods":
+    def expand(self, spaces: int = 1, fill: str = " ") -> Optional[str]:
         """ 
         Puts specified amt. of spaces between characters 
         
@@ -1299,33 +1307,72 @@ class StringMethods(str):
         print(string.expand(3))
         """
         
-        require_type(spaces, int,
-                     arg_name="spaces",
-                     func_name="StringMethods.expand()")
-        require_type(fill, str,
-                     arg_name="fill",
-                     func_name="StringMethods.expand()")
+        require_type(spaces, int, arg_name="spaces", func_name="StringMethods.expand()")
+        require_type(fill, str, arg_name="fill", func_name="StringMethods.expand()")
         
-        return StringMethods("".join(char + (fill * spaces) for char in self))
-    
-    def printstring(self, *args, **kwargs) -> None:
-        """ 
-        Prints the string and passes arguments to print function
+        return self.checkmutable("".join(char + (fill * spaces) for char in self.data))
+
+    def __sub__(self, n: int) -> str:
+        """
+        Takes n characters from the end of the string
+
+        Arguments:
+        n (int): Number of characters
 
         Example use:
-        string = StringMethods("Hello world")
-        string.printstring() # same as print(string)
+        string -= 1
         """
         
-        print(self, *args, **kwargs)
+        require_type(n, int, arg_name="n", func_name="__sub__")
+        
+        # self.checkmutable is not required here
+        # "string - 1" as a statement by itself doesn't really make sense
+        # "string -= 1" is better
+        
+        return "".join(self.data[:-n])
     
+    def __format__(self, format_spec: str) -> str:
+        
+        """
+        Return a formatted version of the string as described by
+        format_spec; Added format specifiers as well as the built-in ones
+        
+        Arguments:
+        format_spec (str): The format specifier
+        
+        Example use:
+        print(f"{string:hide}")
+        """
+        
+        string = self.data
+
+        # Hide (like a password)
+        if "hide" in format_spec.lower():
+            string = "•" * len(string)
+            format_spec = format_spec.replace("hide", "")
+
+        # Reverse
+        if "rev" in format_spec.lower():
+            string = string[::-1]
+            format_spec = format_spec.replace("rev", "")
+        
+        # __format__ must return str, not None, so self.checkmutable
+        # is not required here
+        
+        if len(format_spec) > 0:
+            return string.__format__(format_spec)
+
+        return string
+    
+    # ---------------- None Returns ----------------
+
     def flush(self,
               timeout: float = 0.06,
               cursor: bool = True,
               **kwargs) -> None:
 
         """
-        Prints each characters in the string one after another
+        Prints each characters in the string one after another,
         in a smooth animation
 
         Optional arguments:
@@ -1343,6 +1390,7 @@ class StringMethods(str):
         
         # To avoid 'Dangerous default value [] as argument' warning
         pauseatchars: List = kwargs.get("pauseatchars", [])
+        
         pausetimeout: Union[int, float] = kwargs.get("pausetimeout", 0.01)
         
         require_type(timeout, float, int,
@@ -1362,49 +1410,46 @@ class StringMethods(str):
         if cursor:
             cursor_bar = "|"
         
-        for index in range(len(self)):
+        for index in range(self.len):
             
             if index in pauseatchars:
                 if pauseatchars:
-                    print(self[:index], end="\r")
+                    print(self.data[:index], end="\r")
                     time.sleep(pausetimeout)
                 
-            print(self[:index], end=f"{cursor_bar}\r", flush=True)
+            print(self.data[:index], end=f"{cursor_bar}\r", flush=True)
             time.sleep(timeout)
             
-        print(self, end=f"{cursor_bar}\r")
+        print(self.data, end=f"{cursor_bar}\r")
         
         if cursor:
             time.sleep(0.25)
-            print(self, end=" \n")
+            print(self.data, end=" \n")
             time.sleep(0.25)
-        
-    def __sub__(self, n: int) -> "StringMethods":
-        """
-        Takes n characters from the end of the string
 
-        Arguments:
-        n (int): Number of characters
+    def printchars(self, end: str = "\n") -> None:
+        """ 
+        Prints all characters in the string (separately)
+
+        Optional arguments:
+        end (str): Specify character at end of string
 
         Example use:
-        string -= 1
+        string.printchars()
         """
         
-        return StringMethods("".join(self[:-n]))
-    
-    def huge(self) -> "StringMethods":
-        """ 
-        Impliments the huge_text() function
+        require_type(end, str, arg_name="end", func_name="StringMethods.printchars()")
+        
+        for index, char in enumerate(self.data, 1):
+            if index == self.len:
+                end = "\n"
+            print(char, end=end)
 
-        Example use:
-        print(string.huge())
-        """
-        
-        return StringMethods(huge_text(self))
+    # ---------------- Other Returns ----------------
     
-    def splitevery(self, n: int) -> List:
+    def splitevery(self, n: int) -> Optional[List]:
         """ 
-        Splits a string every n characters 
+        Splits a string every n characters
 
         Arguments:
         n (int): Number of characters
@@ -1413,90 +1458,37 @@ class StringMethods(str):
         print(string.splitevery(2))
         """
         
-        require_type(n, int, arg_name="n", func_name="StringMethods.sep()")
+        require_type(n, int, arg_name="n", func_name="StringMethods.splitevery()")
         
-        return re.findall(("." * n) + "?", self)
-
+        return self.checkmutable(re.findall(("." * n) + "?", self.data))
+    
     """
-    Here, I am adjusting methods from the 'str' class which
-    would normally return type 'str'.
-    
-    I changed each one to correctly return type 'StringMethods' instead,
-    so the instance's type is not changed after using one of these methods.
-    
-    All other methods from the 'str' class return a different type,
-    such as str.count(), which returns type 'int', or str.isupper(),
-    which return type 'bool', so I don't need to change the return type for them.
+    Methods below from the str class have already been adjusted in the
+    collections.UserString class, however, I am adjusting them again here
+    in order to carry out the correct operation based on whether the string is
+    mutable or not
     """
     
-    # Return type of all methods below -> "StringMethods"
-    def capitalize(self, *args): return (
-        StringMethods(super().capitalize(*args))
-    )
-
-    def expandtabs(self, *args): return (
-        StringMethods(super().expandtabs(*args))
-    )
-    def format_map(self, *args): return (
-        StringMethods(super().format_map(*args))
-    )
-
-    def removeprefix(self, *args): return (
-        StringMethods(super().removeprefix(*args))
-    )
-    def removesuffix(self, *args): return (
-        StringMethods(super().removesuffix(*args))
-    )
+    # Return type of all methods below -> Optional[str]
+    def capitalize(self, *args): return self.checkmutable(self.data.capitalize(*args))
+    def expandtabs(self, *args): return self.checkmutable(self.data.expandtabs(*args))
+    def format_map(self, *args): return self.checkmutable(self.data.format_map(*args))
+    def join(self, *args): return self.checkmutable(self.data.join(*args))
+    def ljust(self, *args): return self.checkmutable(self.data.ljust(*args))
+    def lower(self, *args): return self.checkmutable(self.data.lower(*args))
+    def lstrip(self, *args): return self.checkmutable(self.data.lstrip(*args))
+    def replace(self, *args): return self.checkmutable(self.data.replace(*args))
+    def casefold(self, *args): return self.checkmutable(self.data.casefold(*args))
+    def center(self, *args): return self.checkmutable(self.data.center(*args))
+    def rjust(self, *args): return self.checkmutable(self.data.rjust(*args))
+    def rstrip(self, *args): return self.checkmutable(self.data.rstrip(*args))
+    def strip(self, *args): return self.checkmutable(self.data.strip(*args))
+    def swapcase(self, *args): return self.checkmutable(self.data.swapcase(*args))
+    def title(self, *args): return self.checkmutable(self.data.title(*args))
+    def translate(self, *args): return self.checkmutable(self.data.translate(*args))
+    def upper(self, *args): return self.checkmutable(self.data.upper(*args))
+    def zfill(self, *args): return self.checkmutable(self.data.zfill(*args))
     
-    def __getitem__(self, *args): return (
-        StringMethods(super().__getitem__(*args))
-    )
-
-    def __format__(self, format_spec: str) -> str:
-        
-        string = str(self)
-
-        # Hide (like a password)
-        if "hide" in format_spec.lower():
-            string = "•" * len(string)
-            format_spec = format_spec.replace("hide", "")
-
-        # Reverse
-        if "rev" in format_spec.lower():
-            string = string[::-1]
-            format_spec = format_spec.replace("rev", "")
-        
-        # Variable name
-        if "name" in format_spec.lower():
-            string = f"{string=}".split("=")[0]
-            format_spec = format_spec.replace("name", "")
-        
-        if len(format_spec) > 0:
-            return StringMethods(string.__format__(format_spec))
-
-        return StringMethods(string)
-
-    def __mod__(self, *args): return StringMethods(super().__mod__(*args))
-    def __mul__(self, *args): return StringMethods(super().__mul__(*args))
-    def __repr__(self, *args): return StringMethods(super().__repr__(*args))
-    def __rmul__(self, *args): return StringMethods(super().__rmul__(*args))
-    def join(self, *args): return StringMethods(super().join(*args))
-    def ljust(self, *args): return StringMethods(super().ljust(*args))
-    def lower(self, *args): return StringMethods(super().lower(*args))
-    def lstrip(self, *args): return StringMethods(super().lstrip(*args))
-    def replace(self, *args): return StringMethods(super().replace(*args))
-    def casefold(self, *args): return StringMethods(super().casefold(*args))
-    def center(self, *args): return StringMethods(super().center(*args))
-    def rjust(self, *args): return StringMethods(super().rjust(*args))
-    def rstrip(self, *args): return StringMethods(super().rstrip(*args))
-    def strip(self, *args): return StringMethods(super().strip(*args))
-    def swapcase(self, *args): return StringMethods(super().swapcase(*args))
-    def title(self, *args): return StringMethods(super().title(*args))
-    def translate(self, *args): return StringMethods(super().translate(*args))
-    def upper(self, *args): return StringMethods(super().upper(*args))
-    def zfill(self, *args): return StringMethods(super().zfill(*args))
-    def __add__(self, *args): return StringMethods(super().__add__(*args))
-
 
 def timethis(func):
     """ 
