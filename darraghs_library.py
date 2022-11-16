@@ -11,21 +11,21 @@ __author__ = "Darragh Luby"
 __email__ = "darraghluby@gmail.com"
 __version__ = "0.0.1"
 
+# Modules below are in the Python standard library
 import os
 import random
 import re
-# Modules below are in the Python standard library
 import time
 from collections import UserString
 from functools import wraps
-# For 'install_module()' function (see line 270)
+# For 'install_module()' function
 from subprocess import CalledProcessError, check_call
 from sys import executable, stderr
 
 # Related modules
 from modules.colors_class import colors
 from modules.huge_letters_dict import HUGE_LETTERS
-from modules.type_validation import (  # noqa: F401
+from modules.type_validation import (  # pylint: disable=unused-import
     require_type,
     Any,
     Callable,
@@ -57,8 +57,8 @@ def printf(*arguments,
     Print colored/decorated text
 
     Optional arguments:
-    showerror (bool): Display an error when unmatched tags are detected
-    showexamples (bool): Display example of every tag name
+        showerror (bool): Display an error when unmatched tags are detected
+        showexamples (bool): Display example of every tag name
 
     Optional keyword arguments are passed to print()
 
@@ -279,7 +279,7 @@ def install_module(module_name: str) -> None:
     Import a python module using pip
 
     Arguments:
-    module_name (str): The name of the module
+        module_name (str): The name of the module
 
     Example use:
     install_module("some_module")
@@ -327,18 +327,18 @@ def get_input(prompt: str = "",
     and (if 'accepted' argument is set) can be accepted;
     
     Optional arguments:
-    prompt (str): The prompt
-    inputtype (type): The required type of the input
-    accepted (Any): A single value, or a tuple/list/range
-                    of values that can be accepted
-    exitinput (str): A single string, or a tuple/list/range of strings
-                     that, when given as an input, exit the loop (returns -1)
-    showaccepted (bool): Shows the acceptable values when an unacceptable
-                         value is given
-    wrongtypemsg (str): The message to be shown when the input cannot be
-                        casted to the correct type ('inputtype')
-    unacceptedmsg (str): The message to be shown when the input is casted
-                         to the correct type, but is not an accepted value
+        prompt (str): The prompt
+        inputtype (type): The required type of the input
+        accepted (Any): A single value, or a tuple/list/range
+                        of values that can be accepted
+        exitinput (str): A single string, or a tuple/list/range of strings
+                         that, when given as an input, exit the loop (returns -1)
+        showaccepted (bool): Shows the acceptable values when an unacceptable
+                             value is given
+        wrongtypemsg (str): The message to be shown when the input cannot be
+                            casted to the correct type ('inputtype')
+        unacceptedmsg (str): The message to be shown when the input is casted
+                             to the correct type, but is not an accepted value
     
     Example use:
     number = get_input(
@@ -452,10 +452,10 @@ def as_price(number: Union[int, float], currency: str = "€") -> str:
     Displays an integer or float as a price (price tag & 2 decimal places)
 
     Arguments:
-    number (float, int): The number (price) to be displayed
+        number (float, int): The number (price) to be displayed
 
     Optional arguments:
-    currency: The currency symbol to be shown (e.g. "$")
+        currency: The currency symbol to be shown (e.g. "$")
 
     Example use:
     print(as_price(19.99))
@@ -474,7 +474,7 @@ def multiline_input(msg: str = "Enter/Paste your content."
     Gets a multi-line input from the user and returns a list
 
     Optional arguments:
-    msg (str): The prompt
+        msg (str): The prompt
 
     Example use:
     input_list = multiline_input("Type a paragraph: ")
@@ -501,7 +501,7 @@ def dice_roll(animation: bool = True) -> int:
     Simulate rolling a dice
 
     Optional arguments:
-    animation (bool): Choose whether the animation should be shown or not
+        animation (bool): Choose whether the animation should be shown or not
 
     Example use:
     outcome = dice_roll()
@@ -532,11 +532,11 @@ def read_csv(file_name: str, delimiter: str = ",",
     Read & split each line in a csv file
 
     Arguments:
-    file_name (str): The name of the file to be read
+        file_name (str): The name of the file to be read
 
     Optional arguments:
-    delimiter (str): The separator of the csv file
-    encoding (str): Specify an encoding for the open() function
+        delimiter (str): The separator of the csv file
+        encoding (str): Specify an encoding for the open() function
 
     Example use:
     csv_lines = read_csv("example.csv")
@@ -688,7 +688,7 @@ class Lorem:
         Also used for gettuple() / getset() functions
 
         Optional arguments:
-        length: Specify a length for the list
+            length: Specify a length for the list
 
         Example use:
         random_word_list = lorem.getlist()
@@ -765,7 +765,7 @@ def int_to_roman(num: int) -> str:
     Convert a regular integer (int) to a roman numeral (str)
 
     Arguments:
-    num (int): The integer to be converted to roman number
+        num (int): The integer to be converted to roman number
 
     Example use:
     roman_number = int_to_roman(999)
@@ -795,7 +795,7 @@ def roman_to_int(num: str) -> int:
     Convert a roman numeral (str) to an integer (int)
 
     Arguments:
-    num (int): The roman number to be converted to an integer
+        num (int): The roman number to be converted to an integer
 
     Example use:
     int_number = roman_to_int("CMXCIX")
@@ -826,10 +826,10 @@ def file_exists(file_name: str, encoding: str = "utf-8") -> bool:
     Returns True if the file exists, otherwise False
 
     Arguments:
-    file_name (str): The name of the file
+        file_name (str): The name of the file
 
     Optional arguments:
-    encoding (str): The encoding for the open() function
+        encoding (str): The encoding for the open() function
 
     Example use:
     print(file_exists("example.csv"))
@@ -863,23 +863,23 @@ def countdown(*args, **kwargs) -> None:
          3 args) countdown(3, 2, 1) -> 3 hours, 2 minutes, 1 second
 
     Optional keyword arguments:
-    position (str):
-        Specify where to position the countdown on the screen
-        This uses built in python functions, so you can customize
-        the position yourself, e.g. "position = rjust(20)"
+        position (str):
+            Specify where to position the countdown on the screen
+            This uses built in python functions, so you can customize
+            the position yourself, e.g. "position = rjust(20)"
 
-        Available positions:
-        ljust(x), rjust(x), center(x), default,
-        where x is the total width
+            Available positions:
+            ljust(x), rjust(x), center(x), default,
+            where x is the total width
 
-    display (str):
+        display (str):
 
-        Customize how the countdown is displayed
+            Customize how the countdown is displayed
 
-        Available displays:
-        default, words, letters
+            Available displays:
+            default, words, letters
 
-    blink (bool): Choose whether to display a blinking arrow or not
+        blink (bool): Choose whether to display a blinking arrow or not
 
     Example uses:
     countdown(10) [10 seconds]
@@ -1015,10 +1015,10 @@ def huge_text(text: str, spacegap: int = 3) -> str:
     Inspiration: "https://fsymbols.com/generators/tarty/"
 
     Arguments:
-    text (str): The text to be transformed
+        text (str): The text to be transformed
 
     Optional arguments:
-    spacegap (int): The gap (width) of 1 space
+        spacegap (int): The gap (width) of 1 space
 
     Example use:
     print(huge_text("hello world"))
@@ -1075,10 +1075,10 @@ class StringMethods(UserString):
         StringMethods class constructor
 
         Arguments:
-        string (str): The string
+            string (str): The string
 
         Optional arguments:
-        mutable (bool): Choose whether to make the string mutable
+            mutable (bool): Choose whether to make the string mutable
 
         Note:
         If you make the string mutable, method behaviour is altered.
@@ -1133,14 +1133,14 @@ class StringMethods(UserString):
         Checks if user has enabled mutable string during initialization
 
         Arguments:
-        new (str): The new version of "self.data" to be set or returned
+            new (str): The new version of "self.data" to be set or returned
         """
 
         if self.mutable:
             self.data = new
 
             # If mutable, initalized variables must be updated
-            self.__init__(self.data, mutable=True)
+            StringMethods.__init__(self, self.data, mutable=True)
             return None
 
         return new
@@ -1153,10 +1153,10 @@ class StringMethods(UserString):
         otherwise returns False
 
         Arguments:
-        char (str): Character to be checked
+            char (str): Character to be checked
 
         Optional arguments:
-        casesensitive (bool): Specify if uppercase and lowercase matters
+            casesensitive (bool): Specify if uppercase and lowercase matters
 
         Example use:
         print(string.contains("h", casesensitive=False))
@@ -1181,10 +1181,10 @@ class StringMethods(UserString):
         otherwise returns False
 
         Arguments:
-        chars (str): Characters to be checked (must be iterable)
+            chars (str): Characters to be checked (must be iterable)
 
         Optional arguments:
-        casesensitive (bool): Specify if uppercase and lowercase matters
+            casesensitive (bool): Specify if uppercase and lowercase matters
 
         Example use:
         print(string.containsany("hwokdbe", casesensitive=False))
@@ -1310,10 +1310,10 @@ class StringMethods(UserString):
         Remove all instances of specified characters from string
 
         Arguments:
-        chars (list, string, ...): Characters to remove (must be iterable)
+            chars (list, string, ...): Characters to remove (must be iterable)
 
         Optional arguments:
-        casesensitive (bool): Specify if uppercase and lowercase matters
+            casesensitive (bool): Specify if uppercase and lowercase matters
 
         Example use:
         print(string.removechars("a"))
@@ -1351,7 +1351,7 @@ class StringMethods(UserString):
         Adds newlines to bottom of string (moving it "up")
 
         Optional arguments:
-        amt (int): Amount of newlines to be added
+            amt (int): Amount of newlines to be added
 
         Example use:
         print(string.up(3))
@@ -1366,7 +1366,7 @@ class StringMethods(UserString):
         Adds newlines to top of string (moving it "down")
 
         Optional arguments:
-        amt (int): Amount of newlines to be added
+            amt (int): Amount of newlines to be added
 
         Example use:
         print(string.down(3))
@@ -1384,7 +1384,7 @@ class StringMethods(UserString):
         Adds newlines to top & bottom of string (moving it "up" & "down")
 
         Optional arguments:
-        amt (int): Amount of newlines to be added
+            amt (int): Amount of newlines to be added
 
         Example use:
         print(string.updown(3))
@@ -1402,8 +1402,8 @@ class StringMethods(UserString):
         Puts specified amt. of spaces between characters
 
         Optional arguments:
-        spaces (int): Amount of spaces between each character
-        fill (str): Replace spaces with specified character
+            spaces (int): Amount of spaces between each character
+            fill (str): Replace spaces with specified character
 
         Example use:
         print(string.expand(3))
@@ -1426,7 +1426,7 @@ class StringMethods(UserString):
         Takes n characters from the end of the string
 
         Arguments:
-        n (int): Number of characters
+            n (int): Number of characters
 
         Example use:
         string -= 1
@@ -1447,14 +1447,14 @@ class StringMethods(UserString):
         format_spec; Added format specifiers as well as the built-in ones
 
         Arguments:
-        format_spec (str): The format specifier
+            format_spec (str): The format specifier
 
         Example use:
         print(f"{string:hide}")
 
         New format specifiers:
-        1. "hide": Hides the string (as a password; bulletpoints)
-        2. "rev": Reverses the string
+            1) "hide": Hides the string (as a password; bulletpoints)
+            2) "rev": Reverses the string
         """
 
         string = self.data
@@ -1489,12 +1489,12 @@ class StringMethods(UserString):
         in a smooth animation
 
         Optional arguments:
-        timeout (float): Time in seconds to wait after printing last character
-        cursor (bool) Display a cursor bar as if somebody is manually typing
+            timeout (float): Time in seconds to wait after printing last character
+            cursor (bool) Display a cursor bar as if somebody is manually typing
 
         Optional keyword arguments:
-        pauseatchars (list): Wait for pausetimeout at these chars (see below)
-        pausetimeout (float, int): Time in seconds to wait at each pause
+            pauseatchars (list): Wait for pausetimeout at these chars (see below)
+            pausetimeout (float, int): Time in seconds to wait at each pause
 
         Example use:
         string = StringMethods("Hello everyone, my name is Steve")
@@ -1540,7 +1540,7 @@ class StringMethods(UserString):
         Prints all characters in the string (separately)
 
         Optional arguments:
-        end (str): Specify character at end of string
+            end (str): Specify character at end of string
 
         Example use:
         string.printchars()
@@ -1563,7 +1563,7 @@ class StringMethods(UserString):
         Splits a string every n characters
 
         Arguments:
-        n (int): Number of characters
+            n (int): Number of characters
 
         Example use:
         print(string.splitevery(2))
@@ -1726,10 +1726,8 @@ def helpme():
 
     try:
         while True:
-
-            printf("\n<blue>Type </blue><cyan><i>Exit</i></cyan><blue>"
-                   "or </blue><cyan><i>0</i></cyan><blue> to leave "
-                   "interactive help</blue>")
+            
+            printf("\n<blue>Type 'exit' or '0' to leave interactive help</blue>")
 
             while True:
 
@@ -1821,20 +1819,25 @@ def for_each(obj: Iterable, func: Callable, *args, **kwargs) -> Any:
     For everything in the given object, do the specified task
 
     Arguments:
-    obj (Iterable): The object to be iterated over
-    func (Callable): The function to perform for each item in that object
+        obj (Iterable): The object to be iterated over
+        func (Callable): The function to perform for each item in that object
 
     Any more arguments or keyword arguments are passed to the given function
 
     Pass an object & function to this function without the parenthesis,
     and specify any arguments and keyword arguments after.
+    
+    Note:
+    The print function will print any other arguments before the item
 
     Example use:
-    for_each([1, 2, 3], print, end=" ")
+    for_each([1, 2, 3], print, "Number:", end=" ")
     lst = for_each([4, 5, 6], pow, 3)
     """
-
-    returns = tuple(func(i, *args, **kwargs) for i in obj)
+    if func is print:
+        returns = tuple(func(*args, i, **kwargs) for i in obj)
+    else:
+        returns = tuple(func(i, *args, **kwargs) for i in obj)
 
     return returns
 
@@ -1884,8 +1887,8 @@ class Xrange:
 
         Example use:
 
-            for i in Xrange(0, 100, 0.01, inclusive=True):
-                print(i, end=", ")
+        for i in Xrange(0, 100, 0.01, inclusive=True):
+            print(i, end=", ")
         """
 
         require_type(convertint,
@@ -2018,8 +2021,8 @@ def menu(*args,
     this function, use the built-in unpacking operator (*) before the argument
 
     Example use:
-        lst = ["option 1", "option 2", "option 3"]
-        menu(lst)
+    lst = ["option 1", "option 2", "option 3"]
+    menu(lst)
     """
 
     if len(args) < 1:
@@ -2106,9 +2109,8 @@ def menu(*args,
 
 
 if __name__ == "__main__":
-
-    pass
-
-    # TODO: Fix "see line" statements
+    
+    helpme()
+    
     # TODO: Xrange testing
     # TODO: for_each testing

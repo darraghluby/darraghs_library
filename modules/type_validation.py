@@ -22,6 +22,7 @@ from typing import (
 )
 
 def require_type(value: Any,
+                 _type: Optional[type],
                  *types: Optional[type],
                  arg_name: str = "",
                  func_name: str = "",
@@ -51,7 +52,7 @@ def require_type(value: Any,
     """
     
     # Remove duplicate types
-    types: set = set([*types])
+    types: set = set([_type, *types])
     
     # Check this function's own arguments (inner use only)
     checkargs: list = kwargs.get("check_own_args", [1, 2, 3, 4, 5])
