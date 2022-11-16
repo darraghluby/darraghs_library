@@ -11,3 +11,4 @@ Darragh's Library is a Python module containing various functions, classes, etc.
 There are lots of functions and classes available that you may find useful.
 For full details on how to use them, use the helpme function:
 `helpme()`
+
