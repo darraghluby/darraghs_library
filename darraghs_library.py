@@ -1230,7 +1230,7 @@ class StringMethods(UserString):
         
         require_type(casesensitive, bool, arg_name="casesensitive", func_name="StringMethods.removechars()")
 
-        chars = [str(char) for char in chars]
+        chars = set(str(char) for char in chars)
 
         if casesensitive:
             return self.checkmutable("".join(i for i in self.data if i not in chars))
@@ -1420,12 +1420,7 @@ class StringMethods(UserString):
             print(self.data[:index], end=f"{cursor_bar}\r", flush=True)
             time.sleep(timeout)
             
-        print(self.data, end=f"{cursor_bar}\r")
-        
-        if cursor:
-            time.sleep(0.25)
-            print(self.data, end=" \n")
-            time.sleep(0.25)
+        print(f"{self.data} \r", end="")
 
     def printchars(self, end: str = "\n") -> None:
         """ 
@@ -1957,7 +1952,15 @@ def menu(*args,
 
 if __name__ == "__main__":
     
-    pass
+    @timethis
+    def _test() -> None:
+        string = StringMethods("jakd;;ru4iowejh;;-")
+        string.setmutable()
+        
+        string.flush()
+        print(string)
+        
+    _test()
     
     # TODO: Fix "see line" statements
     # TODO: xrange testing
