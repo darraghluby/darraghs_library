@@ -314,67 +314,136 @@ def install_module(module_name: str) -> None:
         successmsg(f"\nModule: '{module_name}' installed successfully")
 
 
-def get_input(msg: str,
+def get_input(prompt: str = "",
               inputtype: type = str,
-              required: Optional[Any] = None,
-              stopatinput: Optional[Any] = None,
-              error: str = "Invalid input") -> Any:
-
+              accepted: Optional[Any] = None,
+              exitinput: Optional[Any] = None,
+              showaccepted: bool = False,
+              wrongtypemsg: Optional[str] = None,
+              unacceptedmsg: Optional[str] = None) -> Any:
+    
     """
-    Repeats input prompt until given value can be casted to the correct type
-
-    Arguments:
-    msg (str): The prompt
-
+    Repeats input prompt until an input can be casted to the correct type,
+    and (if 'accepted' argument is set) can be accepted;
+    
     Optional arguments:
-    inputtype: The required type of the input
-    required: The required value of the input, can
-              be one of many, i.e. a range, list, etc.
-    stopatinput: Stops looping when that input is given
-    error: Error message to display when invalid input is given
-
+    prompt (str): The prompt
+    inputtype (type): The required type of the input
+    accepted (Any): A single value, or a tuple/list/range
+                    of values that can be accepted
+    exitinput (str): A single string, or a tuple/list/range of strings
+                     that, when given as an input, exit the loop (returns -1)
+    showaccepted (bool): Shows the acceptable values when an unacceptable
+                         value is given
+    wrongtypemsg (str): The message to be shown when the input cannot be
+                        casted to the correct type ('inputtype')
+    unacceptedmsg (str): The message to be shown when the input is casted
+                         to the correct type, but is not an accepted value
+    
     Example use:
-    get_input("Enter a number: ", int, required=range(0, 101))
+    number = get_input(
+        "Enter a number: ",
+        int,
+        accepted=range(1, 6),
+        exitinput=("exit", "stop", "-1"),
+        showaccepted=True,
+    )
     """
+    
+    require_type(prompt, str, arg_name="prompt", func_name="get_input()")
+    require_type(inputtype, type, arg_name="inputtype", func_name="get_input()")
+    require_type(showaccepted, bool, arg_name="showaccepted", func_name="get_input()")
+    require_type(wrongtypemsg, str, None, arg_name="wrongtypemsg", func_name="get_input()")
+    require_type(unacceptedmsg, str, None, arg_name="unacceptedmsg", func_name="get_input()")
+    
+    _type = inputtype()
+    
+    require_type(_type, str, int, float, complex, bool, list, tuple,
+                 arg_name="inputtype", func_name="get_inputs()")
+    
+    check_accepted = False
+    if accepted is not None:
+        
+        if isinstance(accepted, (list, tuple, range)):
 
-    require_type(msg, str, arg_name="msg", func_name="get_input()")
-    require_type(inputtype, type, arg_name="_type", func_name="get_input()")
-    require_type(error, str, arg_name="error", func_name="get_input()")
-
-    # The following must be the same type as the type of the input
-    require_type(stopatinput, inputtype, None,
-                 arg_name="stopatinput", func_name="get_input()")
-
-    while True:
-        try:
-            x = inputtype(input(msg))
-        except ValueError:
-            errmsg(error)
+            accepted = list(accepted)
+            for index, i in enumerate(accepted):
+                if not isinstance(i, inputtype):
+                    
+                    if isinstance(i, int) and inputtype is float:
+                        accepted[index] = float(i)
+                    
+                    elif isinstance(i, float) and inputtype is int:
+                        accepted[index] = int(i)
+                    
+                    else:
+                        raise TypeError("All values in 'accepted' sequence must be "
+                                        "the same type as inputtype")
+            
+            accepted_list = accepted
+            check_accepted = True
+        
+        elif isinstance(accepted, int) and inputtype is float:
+            accepted_list = [float(accepted)]
+            check_accepted = True
+        
+        elif isinstance(accepted, float) and inputtype is int:
+            accepted_list = [int(accepted)]
+            check_accepted = True
+            
+        elif isinstance(accepted, inputtype):
+            accepted_list = [accepted]
+            check_accepted = True
+        
         else:
-            if stopatinput is not None:
-                if x == inputtype(stopatinput):
-                    break
-            if required is not None:
-                if isinstance(required, (range, list, tuple, set)):
-                    if x in required:
-                        break
-                    else:
-                        if isinstance(required, range):
-                            errmsg(f"Value must be between {required[0]} "
-                                   "to {required[-1]}")
-                        else:
-                            errmsg(f"Value must be in {required}")
-                        continue
-                else:
-                    if x == required:
-                        break
-                    else:
-                        errmsg(error)
-                        continue
-            else:
-                break
+            raise TypeError("'accepted' value must be the same type as inputtype, "
+                            "or a sequence of values of the same type")
+    
+    
+    check_exit = False
+    if exitinput is not None:
+        
+        if isinstance(exitinput, (list, tuple, range)):
+            for i in exitinput:
+                if not isinstance(i, str):
+                    raise TypeError("All values in 'exitinput' sequence must be type 'str'")
 
-    return x
+            check_exit = True
+            
+        else: 
+            if isinstance(exitinput, str):
+                exitinputs = [exitinput]
+            else:
+                raise TypeError("'exitinput' value must be type 'str', or a sequence of type 'str'")
+            
+            check_exit = True
+    
+    while True:
+        userinput = input(prompt)
+        if check_exit:
+            if userinput in exitinputs:
+                return -1
+        try:
+            userinput = inputtype(userinput)
+        except ValueError:
+            if wrongtypemsg is None:
+                print("Invalid input")
+            else:
+                print(wrongtypemsg)
+        else:
+            if not check_accepted:
+                return userinput
+
+            if userinput in accepted_list:
+                return userinput
+            
+            if showaccepted:
+                print(f"Value must be in list: {accepted_list}")
+            else:
+                if unacceptedmsg is None:
+                    print("Value not accepted")
+                else:
+                    print(unacceptedmsg)
 
 
 def as_price(number: Union[int, float], currency: str = "€") -> str:
@@ -2037,8 +2106,8 @@ def menu(*args,
 
 
 if __name__ == "__main__":
-
-    menu("hi", position="right")
+    
+    pass
 
     # TODO: Fix "see line" statements
     # TODO: Xrange testing
