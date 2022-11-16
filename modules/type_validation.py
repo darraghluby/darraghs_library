@@ -22,7 +22,7 @@ from typing import (
 )
 
 def require_type(value: Any,
-                 *types: type | None,
+                 *types: Optional[type],
                  arg_name: str = "",
                  func_name: str = "",
                  error: str = "",
@@ -107,7 +107,15 @@ def require_type(value: Any,
             else:
                 types2.append(f"{t}")
         
-        required_types = ' or '.join(types2)
+        required_types = ""
+        for index, t in enumerate(types2):
+            if index == len(types2) - 1:
+                required_types += f"or {t}"
+            elif index == len(types2) - 2:
+                required_types += f"{t} "
+            else:
+                required_types += f"{t}, "
+
         current_type = value.__class__.__name__ if value is not None else None
 
         error = f"Argument{arg_name}{func_name} must be type " \
