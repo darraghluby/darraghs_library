@@ -38,18 +38,25 @@ def require_type(value: Any,
     is of the correct type(s), and displays an appropriate error otherwise
 
     Arguments:
-    value (Any): The value whose type is being checked
-    types (type): The allowed type(s) (can be 1 or more arguments)
+        value (Any): The value whose type is being checked
+        types (type): The allowed type(s) (can be 1 or more arguments)
 
-    Optional arguments:
-    arg (str): The name of the value / argument
-    func (str): The name of the function that the value is in
-    error (str): The error to be shown when not of a valid type
-    accepted (list): A list of the values that can be accepted
+    Optional keyword arguments:
+        arg (str): The name of the value / argument
+        func (str): The name of the function that the value is in
+        error (str): The error to be shown when not of a valid type
+        accepted (list): A list of the values that can be accepted
+        
+    Returns:
+        None
+        
+    Raises:
+        If not valid type, or not an acceptable value, the function 
+        will raise a TypeError, or a ValueError, respectively
 
     Example uses:
-    require_type(age, int, arg="age", func="age_function()")
-    require_type(name, str, None, arg="name", func="print_name()")
+        require_type(age, int, arg="age", func="age_function()")
+        require_type(name, str, None, arg="name", func="print_name()")
     """
 
     # Remove duplicate types
@@ -106,16 +113,20 @@ def require_type(value: Any,
             if isinstance(t, type):
                 types2.append(f"'{t.__name__}'")
             else:
-                types2.append(f"{t}")
+                types2.append(f"'{t}'")
 
         required_types = ""
-        for index, t in enumerate(types2):
-            if index == len(types2) - 1:
-                required_types += f"or {t}"
-            elif index == len(types2) - 2:
-                required_types += f"{t} "
-            else:
-                required_types += f"{t}, "
+        
+        if len(types2) == 1:
+            required_types = f"{types2[0]}"
+        else:
+            for index, t in enumerate(types2):
+                if index == len(types2) - 1:
+                    required_types += f"or {t}"
+                elif index == len(types2) - 2:
+                    required_types += f"{t} "
+                else:
+                    required_types += f"{t}, "
 
         current_type = value.__class__.__name__ if value is not None else None
 
@@ -131,5 +142,5 @@ def require_type(value: Any,
 
     if accepted:
         if value not in accepted:
-            raise ValueError("Argument value not accepted - "
-                             f"Value must be in list: {accepted}")
+            raise ValueError(f"Argument{arg}{func} not accepted - "
+                             f"Value must be in list: \n{accepted}")

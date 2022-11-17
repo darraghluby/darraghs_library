@@ -28,7 +28,7 @@ class colors:
         none, reset
 
     Example use:
-    green_text = colors.green + "This is green" + colors.none
+        green_text = colors.green + "This is green" + colors.none
     """
 
     # FOREGROUND COLORS

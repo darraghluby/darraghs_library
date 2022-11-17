@@ -7,6 +7,8 @@ in many different programs, and it makes working with Python simpler and
 more efficient.
 """
 
+from __future__ import annotations
+
 __author__ = "Darragh Luby"
 __email__ = "darraghluby@gmail.com"
 __version__ = "0.0.1"
@@ -16,11 +18,10 @@ import os
 import random
 import re
 import time
-from collections import UserString
-from functools import wraps
-# For 'install_module' function
 from subprocess import CalledProcessError, check_call
 from sys import executable, stderr
+from functools import wraps
+from collections import UserString
 
 # Related modules
 from modules.colors_class import colors
@@ -563,11 +564,12 @@ def dice_roll(*, animation: bool = True) -> int:
     return r
 
 
-def read_csv(file_name: str, *, delimiter: str = ",",
-             encoding: str = "utf-8") -> List:
+def file_getrows(file_name: str, *, delimiter: str = ",",
+                encoding: str = "utf-8") -> List:
 
     """
-    Read & split each line in a csv file
+    Read & split each line in a given file
+    Mainly intended for CSV or Text Files
 
     Arguments:
         file_name (str): The name of the file to be read
@@ -580,7 +582,7 @@ def read_csv(file_name: str, *, delimiter: str = ",",
         Rows of content (list)
 
     Example use:
-        csv_lines = read_csv("example.csv")
+        csv_lines = file_getrows("example.csv")
     """
 
     require_type(file_name, str, arg="file_name", func="read_csv()")
@@ -589,7 +591,7 @@ def read_csv(file_name: str, *, delimiter: str = ",",
 
     try:
         with open(file_name, "r", encoding=encoding) as file:
-            lines = file.read().split("\n")
+            lines = file.read().splitlines()
             contents = [line.split(delimiter) for line in lines]
 
     except FileNotFoundError:
@@ -2168,7 +2170,7 @@ def menu(*args,
 
 if __name__ == "__main__":
 
-    helpme()
+    pass
 
     # TODO: Xrange testing
     # TODO: for_each testing
