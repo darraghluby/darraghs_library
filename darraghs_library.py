@@ -62,6 +62,9 @@ def printf(*arguments,
 
     Other keyword arguments are passed to print()
 
+    Returns:
+        None
+
     Below are all the available tag names
     (use printf(showexamples=True) for examples)
 
@@ -249,6 +252,9 @@ def errmsg(*args, **kwargs) -> None:
     Prints a red error message (to sys.stderr)
     Arguments are passed to printf()
 
+    Returns:
+        None
+
     Example use:
         errmsg("Invalid input, please try again")
     """
@@ -263,6 +269,9 @@ def successmsg(*args, **kwargs) -> None:
     """
     Prints a green success message
     Arguments are passed to printf()
+
+    Returns:
+        None
 
     Example use:
         successmsg("Downloaded successfully")
@@ -281,13 +290,16 @@ def install_module(module_name: str) -> None:
     Arguments:
         module_name (str): The name of the module
 
+    Returns:
+        None
+
     Example use:
         install_module("some_module")
     """
 
     require_type(module_name, str,
-                 arg_name="module_name",
-                 func_name="install_module()")
+                 arg="module_name",
+                 func="install_module()")
 
     # For aesthetics (loading... animation)
     for i in range(2):
@@ -322,27 +334,30 @@ def get_input(prompt: str = "",
               showaccepted: bool = False,
               wrongtypemsg: Optional[str] = None,
               unacceptedmsg: Optional[str] = None) -> Any:
-    
+
     """
     Repeats input prompt until an input can be casted to the correct type,
     and (if 'accepted' argument is set) can be accepted;
-    
+
     Optional arguments:
         prompt (str): The prompt
         inputtype (type): The required type of the input
-    
+
     Optional keyword arguments:
         accepted (Any): A single value, or a tuple/list/range
                         of values that can be accepted
-        exitinput (str): A single string, or a tuple/list/range of strings
-                         that, when given as an input, exit the loop (returns -1)
+        exitinput (str): A single string, or a tuple/list of strings, that
+                         when given as an input, exit the loop (returns -1)
         showaccepted (bool): Shows the acceptable values when an unacceptable
                              value is given
         wrongtypemsg (str): The message to be shown when the input cannot be
                             casted to the correct type ('inputtype')
         unacceptedmsg (str): The message to be shown when the input is casted
                              to the correct type, but is not an accepted value
-    
+
+    Returns:
+        specified type (inputtype) (or -1 if exitinput is given)
+
     Example use:
         number = get_input(
             "Enter a number: ",
@@ -352,75 +367,86 @@ def get_input(prompt: str = "",
             showaccepted=True,
         )
     """
-    
-    require_type(prompt, str, arg_name="prompt", func_name="get_input()")
-    require_type(inputtype, type, arg_name="inputtype", func_name="get_input()")
-    require_type(showaccepted, bool, arg_name="showaccepted", func_name="get_input()")
-    require_type(wrongtypemsg, str, None, arg_name="wrongtypemsg", func_name="get_input()")
-    require_type(unacceptedmsg, str, None, arg_name="unacceptedmsg", func_name="get_input()")
-    
+
+    require_type(prompt, str, arg="prompt", func="get_input()")
+    require_type(inputtype, type, arg="inputtype", func="get_input()")
+    require_type(showaccepted, bool, arg="showaccepted", func="get_input()")
+
+    require_type(wrongtypemsg,
+                 str,
+                 None,
+                 arg="wrongtypemsg",
+                 func="get_input()")
+
+    require_type(unacceptedmsg,
+                 str,
+                 None,
+                 arg="unacceptedmsg",
+                 func="get_input()")
+
     _type = inputtype()
-    
+
     require_type(_type, str, int, float, complex, bool, list, tuple,
-                 arg_name="inputtype", func_name="get_inputs()")
-    
+                 arg="inputtype", func="get_inputs()")
+
     check_accepted = False
     if accepted is not None:
-        
+
         if isinstance(accepted, (list, tuple, range)):
 
             accepted = list(accepted)
             for index, i in enumerate(accepted):
                 if not isinstance(i, inputtype):
-                    
+
                     if isinstance(i, int) and inputtype is float:
                         accepted[index] = float(i)
-                    
+
                     elif isinstance(i, float) and inputtype is int:
                         accepted[index] = int(i)
-                    
+
                     else:
-                        raise TypeError("All values in 'accepted' sequence must be "
-                                        "the same type as inputtype")
-            
+                        raise TypeError("All values in 'accepted' sequence "
+                                        "must be same type as inputtype")
+
             accepted_list = accepted
             check_accepted = True
-        
+
         elif isinstance(accepted, int) and inputtype is float:
             accepted_list = [float(accepted)]
             check_accepted = True
-        
+
         elif isinstance(accepted, float) and inputtype is int:
             accepted_list = [int(accepted)]
             check_accepted = True
-            
+
         elif isinstance(accepted, inputtype):
             accepted_list = [accepted]
             check_accepted = True
-        
+
         else:
-            raise TypeError("'accepted' value must be the same type as inputtype, "
+            raise TypeError("'accepted' value must be same type as inputtype "
                             "or a sequence of values of the same type")
-    
-    
+
     check_exit = False
     if exitinput is not None:
-        
+
         if isinstance(exitinput, (list, tuple, range)):
             for i in exitinput:
                 if not isinstance(i, str):
-                    raise TypeError("All values in 'exitinput' sequence must be type 'str'")
+                    raise TypeError("All values in 'exitinput' sequence "
+                                    "must be type 'str'")
 
             check_exit = True
-            
-        else: 
+
+        else:
             if isinstance(exitinput, str):
                 exitinputs = [exitinput]
             else:
-                raise TypeError("'exitinput' value must be type 'str', or a sequence of type 'str'")
-            
+                raise TypeError("'exitinput' value must be type 'str', or "
+                                "a sequence of type 'str'")
+
             check_exit = True
-    
+
     while True:
         userinput = input(prompt)
         if check_exit:
@@ -439,7 +465,7 @@ def get_input(prompt: str = "",
 
             if userinput in accepted_list:
                 return userinput
-            
+
             if showaccepted:
                 print(f"Value must be in list: {accepted_list}")
             else:
@@ -460,12 +486,15 @@ def as_price(number: Union[int, float], *, currency: str = "€") -> str:
     Optional keyword arguments:
         currency (str): The currency symbol to be shown (e.g. "$")
 
+    Returns:
+        new formatted string (str)
+
     Example use:
-    print(as_price(19.99))
+        print(as_price(19.99))
     """
 
-    require_type(number, int, float, arg_name="number", func_name="as_price()")
-    require_type(currency, str, arg_name="currency", func_name="as_price()")
+    require_type(number, int, float, arg="number", func="as_price()")
+    require_type(currency, str, arg="currency", func="as_price()")
 
     return f"{currency}{number:.2f}"
 
@@ -479,11 +508,14 @@ def multiline_input(msg: str = "Enter/Paste your content."
     Optional arguments:
         msg (str): The prompt
 
+    Returns:
+        users input (str)
+
     Example use:
     input_list = multiline_input("Type a paragraph: ")
     """
 
-    require_type(msg, str, arg_name="msg", func_name="multiline_input")
+    require_type(msg, str, arg="msg", func="multiline_input")
 
     print(msg)
     inputs = []
@@ -506,12 +538,15 @@ def dice_roll(*, animation: bool = True) -> int:
     Optional keyword arguments:
         animation (bool): Choose whether the animation should be shown or not
 
+    Returns:
+        The random number 1-6 (int)
+
     Example use:
         outcome = dice_roll()
     """
 
     require_type(animation, bool,
-                 arg_name="animation", func_name="dice_roll()")
+                 arg="animation", func="dice_roll()")
 
     if animation:
         dice = ["□", "◇"]
@@ -541,13 +576,16 @@ def read_csv(file_name: str, *, delimiter: str = ",",
         delimiter (str): The separator of the csv file
         encoding (str): Specify an encoding for the open() function
 
+    Returns:
+        Rows of content (list)
+
     Example use:
         csv_lines = read_csv("example.csv")
     """
 
-    require_type(file_name, str, arg_name="file_name", func_name="read_csv()")
-    require_type(delimiter, str, arg_name="delimiter", func_name="read_csv()")
-    require_type(encoding, str, arg_name="encoding", func_name="read_csv()")
+    require_type(file_name, str, arg="file_name", func="read_csv()")
+    require_type(delimiter, str, arg="delimiter", func="read_csv()")
+    require_type(encoding, str, arg="encoding", func="read_csv()")
 
     try:
         with open(file_name, "r", encoding=encoding) as file:
@@ -602,7 +640,7 @@ class Lorem:
     @classmethod
     def word(cls) -> str:
         """
-        Returns a random word from the list
+        Returns a random word from the list (str)
 
         Example use:
             random_word = Lorem.word()
@@ -614,7 +652,7 @@ class Lorem:
     def sentence(cls, *, words: Optional[int] = None) -> str:
         """
         Returns a formatted sentence with (8 to 20) words
-        with punctuation marks, capitalised letters, etc.
+        with punctuation marks, capitalised letters, etc. (str)
 
         Optional keyword arguments:
             words (int): Specify a length for the sentence
@@ -626,8 +664,8 @@ class Lorem:
         require_type(words,
                      int,
                      None,
-                     arg_name="words",
-                     func_name="Lorem.sentence()")
+                     arg="words",
+                     func="Lorem.sentence()")
 
         if words is None:
             sentence_len = random.randint(8, 20)
@@ -660,7 +698,7 @@ class Lorem:
     @classmethod
     def paragraph(cls) -> str:
         """
-        Returns a paragraph with (4 to 7) sentences
+        Returns a paragraph with (4 to 7) sentences (str)
 
         Example use:
             random_paragraph = lorem.paragraph()
@@ -673,7 +711,7 @@ class Lorem:
     @classmethod
     def text(cls) -> str:
         """
-        Returns a block of (3 to 5) paragraphs
+        Returns a block of (3 to 5) paragraphs (str)
 
         Example use:
             random_text = lorem.text()
@@ -689,7 +727,7 @@ class Lorem:
     def getlist(cls, length: Optional[int] = None, **kwargs) -> List:
         """
         Returns a list of length (10 to 20)
-        Also used for gettuple() / getset() functions
+        Also used for gettuple() / getset() functions (list)
 
         Optional arguments:
             length (int): Specify a length for the list
@@ -704,8 +742,8 @@ class Lorem:
         function_name = kwargs.get("function_name", "lorem.getlist()")
 
         require_type(length, int, None,
-                     arg_name="length",
-                     func_name=function_name)
+                     arg="length",
+                     func=function_name)
 
         if length is not None:
             if length > 0:
@@ -716,7 +754,7 @@ class Lorem:
     @classmethod
     def gettuple(cls, *args, **kwargs) -> Tuple:
         """
-        Returns a tuple of length (10 to 20)
+        Returns a tuple of length (10 to 20) (tuple)
         Arguments are passed to getlist() method
 
         Example use:
@@ -730,7 +768,7 @@ class Lorem:
     @classmethod
     def getset(cls, *args, **kwargs) -> Set:
         """
-        Returns a set of length (10 to 20)
+        Returns a set of length (10 to 20) (set)
         Arguments are passed to getlist() method
 
         Example use:
@@ -775,7 +813,7 @@ def int_to_roman(num: int) -> str:
         roman_number = int_to_roman(999)
     """
 
-    require_type(num, int, arg_name="num", func_name="int_to_roman()")
+    require_type(num, int, arg="num", func="int_to_roman()")
 
     # Lists are in descending order - highest to lowest value
     # Keys are in SYMBOLS, values are in NUMBERS
@@ -805,7 +843,7 @@ def roman_to_int(num: str) -> int:
         int_number = roman_to_int("CMXCIX")
     """
 
-    require_type(num, str, arg_name="num", func_name="roman_to_int()")
+    require_type(num, str, arg="num", func="roman_to_int()")
 
     symbols = [*_ROMAN_NUMERALS.keys()][::-1]
     numbers = [*_ROMAN_NUMERALS.values()][::-1]
@@ -827,7 +865,7 @@ def roman_to_int(num: str) -> int:
 def file_exists(file_name: str, *, encoding: str = "utf-8") -> bool:
 
     """
-    Returns True if the file exists, otherwise False
+    Returns True if the file exists, otherwise False (bool)
 
     Arguments:
         file_name (str): The name of the file
@@ -840,9 +878,9 @@ def file_exists(file_name: str, *, encoding: str = "utf-8") -> bool:
     """
 
     require_type(file_name, str,
-                 arg_name="file_name", func_name="file_exists()")
+                 arg="file_name", func="file_exists()")
     require_type(encoding, str,
-                 arg_name="encoding", func_name="file_exists()")
+                 arg="encoding", func="file_exists()")
 
     try:
         with open(file_name, "r", encoding=encoding):
@@ -885,6 +923,9 @@ def countdown(*args, **kwargs) -> None:
 
         blink (bool): Choose whether to display a blinking arrow or not
 
+    Returns:
+        None
+
     Example uses:
     countdown(10) [10 seconds]
     countdown(2, 30) [2 minutes, 30 seconds]
@@ -893,7 +934,7 @@ def countdown(*args, **kwargs) -> None:
 
     blinker = kwargs.get("blink", False)
 
-    require_type(blinker, bool, arg_name="blink", func_name="countdown()")
+    require_type(blinker, bool, arg="blink", func="countdown()")
 
     # 'position' kwarg - specify where to position the countdown on the console
     position = kwargs.get("position", "default").lower()
@@ -1024,12 +1065,15 @@ def huge_text(text: str, *, spacegap: int = 3) -> str:
     Optional keyword arguments:
         spacegap (int): The gap (width) of 1 space
 
+    Returns:
+        large string (str)
+
     Example use:
         print(huge_text("hello world"))
     """
 
-    require_type(text, str, arg_name="text", func_name="huge_text()")
-    require_type(spacegap, int, arg_name="spacegap", func_name="huge_text()")
+    require_type(text, str, arg="text", func="huge_text()")
+    require_type(spacegap, int, arg="spacegap", func="huge_text()")
 
     text = text.lower()
 
@@ -1082,6 +1126,9 @@ class StringMethods(UserString):
         Optional keyword arguments:
             mutable (bool): Choose whether to make the string mutable
 
+        Returns:
+            None
+
         Note:
         If you make the string mutable, method behaviour is altered.
         Instead of the following example
@@ -1097,8 +1144,8 @@ class StringMethods(UserString):
 
         require_type(mutable,
                      bool,
-                     arg_name="mutable",
-                     func_name="StringMethods.__init__")
+                     arg="mutable",
+                     func="StringMethods.__init__")
 
         # Initialize inherited class
         super().__init__(seq)
@@ -1126,7 +1173,7 @@ class StringMethods(UserString):
     def setmutable(self) -> None:
         """
         Manually sets the string to a mutable string
-        
+
         Example use:
             string.setmutable()
         """
@@ -1169,18 +1216,21 @@ class StringMethods(UserString):
 
         require_type(char,
                      str,
-                     arg_name="char",
-                     func_name="StringMethods.contains()")
+                     arg="char",
+                     func="StringMethods.contains()")
         require_type(casesensitive,
                      bool,
-                     arg_name="casesensitive",
-                     func_name="StringMethods.contains()")
+                     arg="casesensitive",
+                     func="StringMethods.contains()")
 
         if not casesensitive:
             return char.lower() in self.data.lower()
         return str(char) in self.data
 
-    def containsany(self, chars: Iterable, *, casesensitive: bool = True) -> bool:
+    def containsany(self,
+                    chars: Iterable,
+                    *,
+                    casesensitive: bool = True) -> bool:
         """
         Returns True if any given chars are in the string,
         otherwise returns False
@@ -1197,8 +1247,8 @@ class StringMethods(UserString):
 
         require_type(casesensitive,
                      bool,
-                     arg_name="casesensitive",
-                     func_name="StringMethods.containsany()")
+                     arg="casesensitive",
+                     func="StringMethods.containsany()")
 
         for char in chars:
             if casesensitive:
@@ -1328,8 +1378,8 @@ class StringMethods(UserString):
 
         require_type(casesensitive,
                      bool,
-                     arg_name="casesensitive",
-                     func_name="StringMethods.removechars()")
+                     arg="casesensitive",
+                     func="StringMethods.removechars()")
 
         chars = set(str(char) for char in chars)
 
@@ -1363,7 +1413,7 @@ class StringMethods(UserString):
             print(string.up(3))
         """
 
-        require_type(amt, int, arg_name="amt", func_name="StringMethods.up()")
+        require_type(amt, int, arg="amt", func="StringMethods.up()")
 
         return self.checkmutable(self.data + ("\n" * amt))
 
@@ -1380,8 +1430,8 @@ class StringMethods(UserString):
 
         require_type(amt,
                      int,
-                     arg_name="amt",
-                     func_name="StringMethods.down()")
+                     arg="amt",
+                     func="StringMethods.down()")
 
         return self.checkmutable(("\n" * amt) + self.data)
 
@@ -1398,8 +1448,8 @@ class StringMethods(UserString):
 
         require_type(amt,
                      int,
-                     arg_name="amt",
-                     func_name="StringMethods.updown()")
+                     arg="amt",
+                     func="StringMethods.updown()")
 
         return self.checkmutable(("\n" * amt) + self.data + ("\n" * amt))
 
@@ -1409,7 +1459,7 @@ class StringMethods(UserString):
 
         Optional arguments:
             spaces (int): Amount of spaces between each character
-        
+
         Optional keyword arguments:
             fill (str): Replace spaces with specified character
 
@@ -1419,12 +1469,12 @@ class StringMethods(UserString):
 
         require_type(spaces,
                      int,
-                     arg_name="spaces",
-                     func_name="StringMethods.expand()")
+                     arg="spaces",
+                     func="StringMethods.expand()")
         require_type(fill,
                      str,
-                     arg_name="fill",
-                     func_name="StringMethods.expand()")
+                     arg="fill",
+                     func="StringMethods.expand()")
 
         return self.checkmutable(
             "".join(char + (fill * spaces) for char in self.data))
@@ -1440,7 +1490,7 @@ class StringMethods(UserString):
             string -= 1
         """
 
-        require_type(n, int, arg_name="n", func_name="__sub__")
+        require_type(n, int, arg="n", func="__sub__")
 
         # self.checkmutable is not required here
         # "string - 1" as a statement by itself doesn't really make sense
@@ -1498,9 +1548,10 @@ class StringMethods(UserString):
         in a smooth animation
 
         Optional keyword arguments:
-            timeout (float): Time in seconds to wait after printing last character
-            cursor (bool) Display a cursor bar as if somebody is manually typing
-            pauseatchars (list): Wait for pausetimeout at these chars (see below)
+            timeout (float): Time in seconds to wait after printing
+                             last character
+            cursor (bool) Display a cursor bar (like a typewriter)
+            pauseatchars (list): Wait for pausetimeout at these chars
             pausetimeout (float, int): Time in seconds to wait at each pause
 
         Example use:
@@ -1514,17 +1565,17 @@ class StringMethods(UserString):
         pausetimeout: Union[int, float] = kwargs.get("pausetimeout", 0.01)
 
         require_type(timeout, float, int,
-                     arg_name="timeout",
-                     func_name="StringMethods.flush()")
+                     arg="timeout",
+                     func="StringMethods.flush()")
         require_type(cursor, bool,
-                     arg_name="cursor",
-                     func_name="StringMethods.flush()")
+                     arg="cursor",
+                     func="StringMethods.flush()")
         require_type(pauseatchars, list,
-                     arg_name="pauseatchar",
-                     func_name="StringMethods.flush()")
+                     arg="pauseatchar",
+                     func="StringMethods.flush()")
         require_type(pausetimeout, float, int,
-                     arg_name="pausetimeout",
-                     func_name="StringMethods.flush()")
+                     arg="pausetimeout",
+                     func="StringMethods.flush()")
 
         cursor_bar = " "
         if cursor:
@@ -1555,8 +1606,8 @@ class StringMethods(UserString):
 
         require_type(end,
                      str,
-                     arg_name="end",
-                     func_name="StringMethods.printchars()")
+                     arg="end",
+                     func="StringMethods.printchars()")
 
         for index, char in enumerate(self.data, 1):
             if index == self.len:
@@ -1578,8 +1629,8 @@ class StringMethods(UserString):
 
         require_type(n,
                      int,
-                     arg_name="n",
-                     func_name="StringMethods.splitevery()")
+                     arg="n",
+                     func="StringMethods.splitevery()")
 
         # Returns a list, cannot change type if mutable
         # self.checkmutable not required here
@@ -1587,8 +1638,8 @@ class StringMethods(UserString):
 
     # Methods below from the str class have already been adjusted in the
     # collections.UserString class, however, I am adjusting them again here
-    # in order to carry out the correct operation based on whether the string is
-    # mutable or not
+    # in order to carry out the correct operation based on whether the string
+    # is mutable or not
 
     # Return type of all methods below -> Optional[str]
     def capitalize(self, *args): return self.checkmutable(
@@ -1733,8 +1784,10 @@ def helpme():
 
     try:
         while True:
-            
-            printf("\n<blue>Type 'exit' or '0' to leave interactive help</blue>")
+
+            printf(
+                "\n<blue>Type 'exit' or '0' to leave interactive help</blue>"
+            )
 
             while True:
 
@@ -1833,7 +1886,7 @@ def for_each(obj: Iterable, func: Callable, *args, **kwargs) -> Any:
 
     Pass an object & function to this function without the parenthesis,
     and specify any arguments and keyword arguments after.
-    
+
     Note:
     The print function will print any other arguments before the item
 
@@ -1897,12 +1950,12 @@ class Xrange:
 
         require_type(convertint,
                      bool,
-                     arg_name="convertint",
-                     func_name="Xrange.__init__()")
+                     arg="convertint",
+                     func="Xrange.__init__()")
         require_type(inclusive,
                      bool,
-                     arg_name="inclusive",
-                     func_name="Xrange.__init__()")
+                     arg="inclusive",
+                     func="Xrange.__init__()")
 
         for arg in args:
             argtype = type(arg).__name__
@@ -2019,6 +2072,9 @@ def menu(*args,
                         position options:
                         left, right, center
 
+    Returns:
+        None
+
     If you want to pass a collection (list, tuple, dict, set, etc.) into
     this function, use the built-in unpacking operator (*) before the argument
 
@@ -2032,13 +2088,13 @@ def menu(*args,
 
     require_type(verticalspacing,
                  int,
-                 arg_name="verticalspacing",
-                 func_name="menu()")
-    require_type(spacing, int, arg_name="spacing", func_name="menu()")
-    require_type(title, str, None, arg_name="title", func_name="menu()")
-    require_type(label, bool, arg_name="label", func_name="menu()")
-    require_type(border, str, arg_name="border", func_name="menu()")
-    require_type(position, str, arg_name="position", func_name="menu()")
+                 arg="verticalspacing",
+                 func="menu()")
+    require_type(spacing, int, arg="spacing", func="menu()")
+    require_type(title, str, None, arg="title", func="menu()")
+    require_type(label, bool, arg="label", func="menu()")
+    require_type(border, str, arg="border", func="menu()")
+    require_type(position, str, arg="position", func="menu()")
 
     title = "" if title is None else title
 
@@ -2111,9 +2167,9 @@ def menu(*args,
 
 
 if __name__ == "__main__":
-    
+
     helpme()
-    
+
     # TODO: Xrange testing
     # TODO: for_each testing
     # TODO: Fix countdown
