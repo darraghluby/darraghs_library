@@ -18,7 +18,7 @@ import re
 import time
 from collections import UserString
 from functools import wraps
-# For 'install_module()' function
+# For 'install_module' function
 from subprocess import CalledProcessError, check_call
 from sys import executable, stderr
 
@@ -56,11 +56,11 @@ def printf(*arguments,
     """
     Print colored/decorated text
 
-    Optional arguments:
+    Optional keyword arguments:
         showerror (bool): Display an error when unmatched tags are detected
         showexamples (bool): Display example of every tag name
 
-    Optional keyword arguments are passed to print()
+    Other keyword arguments are passed to print()
 
     Below are all the available tag names
     (use printf(showexamples=True) for examples)
@@ -250,7 +250,7 @@ def errmsg(*args, **kwargs) -> None:
     Arguments are passed to printf()
 
     Example use:
-    errmsg("Invalid input, please try again")
+        errmsg("Invalid input, please try again")
     """
 
     args = tuple(f"{colors.red}{arg}{colors.none}" for arg in args)
@@ -265,7 +265,7 @@ def successmsg(*args, **kwargs) -> None:
     Arguments are passed to printf()
 
     Example use:
-    successmsg("Downloaded successfully")
+        successmsg("Downloaded successfully")
     """
 
     args = tuple(f"{colors.green}{arg}{colors.none}" for arg in args)
@@ -282,7 +282,7 @@ def install_module(module_name: str) -> None:
         module_name (str): The name of the module
 
     Example use:
-    install_module("some_module")
+        install_module("some_module")
     """
 
     require_type(module_name, str,
@@ -316,6 +316,7 @@ def install_module(module_name: str) -> None:
 
 def get_input(prompt: str = "",
               inputtype: type = str,
+              *,
               accepted: Optional[Any] = None,
               exitinput: Optional[Any] = None,
               showaccepted: bool = False,
@@ -329,6 +330,8 @@ def get_input(prompt: str = "",
     Optional arguments:
         prompt (str): The prompt
         inputtype (type): The required type of the input
+    
+    Optional keyword arguments:
         accepted (Any): A single value, or a tuple/list/range
                         of values that can be accepted
         exitinput (str): A single string, or a tuple/list/range of strings
@@ -341,13 +344,13 @@ def get_input(prompt: str = "",
                              to the correct type, but is not an accepted value
     
     Example use:
-    number = get_input(
-        "Enter a number: ",
-        int,
-        accepted=range(1, 6),
-        exitinput=("exit", "stop", "-1"),
-        showaccepted=True,
-    )
+        number = get_input(
+            "Enter a number: ",
+            int,
+            accepted=range(1, 6),
+            exitinput=("exit", "stop", "-1"),
+            showaccepted=True,
+        )
     """
     
     require_type(prompt, str, arg_name="prompt", func_name="get_input()")
@@ -446,7 +449,7 @@ def get_input(prompt: str = "",
                     print(unacceptedmsg)
 
 
-def as_price(number: Union[int, float], currency: str = "€") -> str:
+def as_price(number: Union[int, float], *, currency: str = "€") -> str:
 
     """
     Displays an integer or float as a price (price tag & 2 decimal places)
@@ -454,8 +457,8 @@ def as_price(number: Union[int, float], currency: str = "€") -> str:
     Arguments:
         number (float, int): The number (price) to be displayed
 
-    Optional arguments:
-        currency: The currency symbol to be shown (e.g. "$")
+    Optional keyword arguments:
+        currency (str): The currency symbol to be shown (e.g. "$")
 
     Example use:
     print(as_price(19.99))
@@ -495,16 +498,16 @@ def multiline_input(msg: str = "Enter/Paste your content."
     return "\n".join(inputs)
 
 
-def dice_roll(animation: bool = True) -> int:
+def dice_roll(*, animation: bool = True) -> int:
 
     """
     Simulate rolling a dice
 
-    Optional arguments:
+    Optional keyword arguments:
         animation (bool): Choose whether the animation should be shown or not
 
     Example use:
-    outcome = dice_roll()
+        outcome = dice_roll()
     """
 
     require_type(animation, bool,
@@ -525,7 +528,7 @@ def dice_roll(animation: bool = True) -> int:
     return r
 
 
-def read_csv(file_name: str, delimiter: str = ",",
+def read_csv(file_name: str, *, delimiter: str = ",",
              encoding: str = "utf-8") -> List:
 
     """
@@ -534,12 +537,12 @@ def read_csv(file_name: str, delimiter: str = ",",
     Arguments:
         file_name (str): The name of the file to be read
 
-    Optional arguments:
+    Optional keyword arguments:
         delimiter (str): The separator of the csv file
         encoding (str): Specify an encoding for the open() function
 
     Example use:
-    csv_lines = read_csv("example.csv")
+        csv_lines = read_csv("example.csv")
     """
 
     require_type(file_name, str, arg_name="file_name", func_name="read_csv()")
@@ -602,21 +605,22 @@ class Lorem:
         Returns a random word from the list
 
         Example use:
-        random_word = Lorem.word()
+            random_word = Lorem.word()
         """
 
         return random.choice(cls.WORDS)
 
     @classmethod
-    def sentence(cls, words: Optional[int] = None) -> str:
+    def sentence(cls, *, words: Optional[int] = None) -> str:
         """
         Returns a formatted sentence with (8 to 20) words
         with punctuation marks, capitalised letters, etc.
 
-        Optional arguments:
-            words (bool): Specify a length for the sentence
+        Optional keyword arguments:
+            words (int): Specify a length for the sentence
 
-        Example use: random_sentence = lorem.sentence()'
+        Example use:
+            random_sentence = lorem.sentence()'
         """
 
         require_type(words,
@@ -659,7 +663,7 @@ class Lorem:
         Returns a paragraph with (4 to 7) sentences
 
         Example use:
-        random_paragraph = lorem.paragraph()
+            random_paragraph = lorem.paragraph()
         """
 
         para_len = random.randint(4, 7)
@@ -672,7 +676,7 @@ class Lorem:
         Returns a block of (3 to 5) paragraphs
 
         Example use:
-        random_text = lorem.text()
+            random_text = lorem.text()
         """
 
         text_len = random.randint(3, 5)
@@ -688,10 +692,10 @@ class Lorem:
         Also used for gettuple() / getset() functions
 
         Optional arguments:
-            length: Specify a length for the list
+            length (int): Specify a length for the list
 
         Example use:
-        random_word_list = lorem.getlist()
+            random_word_list = lorem.getlist()
         """
 
         list_len = random.randint(10, 20)
@@ -716,7 +720,7 @@ class Lorem:
         Arguments are passed to getlist() method
 
         Example use:
-        new_tuple = Lorem.gettuple()
+            new_tuple = Lorem.gettuple()
         """
 
         return tuple(
@@ -730,7 +734,7 @@ class Lorem:
         Arguments are passed to getlist() method
 
         Example use:
-        new_set = Lorem.getset()
+            new_set = Lorem.getset()
         """
 
         return set(
@@ -768,7 +772,7 @@ def int_to_roman(num: int) -> str:
         num (int): The integer to be converted to roman number
 
     Example use:
-    roman_number = int_to_roman(999)
+        roman_number = int_to_roman(999)
     """
 
     require_type(num, int, arg_name="num", func_name="int_to_roman()")
@@ -798,7 +802,7 @@ def roman_to_int(num: str) -> int:
         num (int): The roman number to be converted to an integer
 
     Example use:
-    int_number = roman_to_int("CMXCIX")
+        int_number = roman_to_int("CMXCIX")
     """
 
     require_type(num, str, arg_name="num", func_name="roman_to_int()")
@@ -820,7 +824,7 @@ def roman_to_int(num: str) -> int:
     return int_num
 
 
-def file_exists(file_name: str, encoding: str = "utf-8") -> bool:
+def file_exists(file_name: str, *, encoding: str = "utf-8") -> bool:
 
     """
     Returns True if the file exists, otherwise False
@@ -828,11 +832,11 @@ def file_exists(file_name: str, encoding: str = "utf-8") -> bool:
     Arguments:
         file_name (str): The name of the file
 
-    Optional arguments:
+    Optional keyword arguments:
         encoding (str): The encoding for the open() function
 
     Example use:
-    print(file_exists("example.csv"))
+        print(file_exists("example.csv"))
     """
 
     require_type(file_name, str,
@@ -1002,26 +1006,26 @@ def countdown(*args, **kwargs) -> None:
     print()
 
 
-def huge_text(text: str, spacegap: int = 3) -> str:
+def huge_text(text: str, *, spacegap: int = 3) -> str:
     """
     Returns string with large characters, where each large
     character is 6 characters tall, i.e. 6 rows
     The six rows make up the letter when separated by a newline
 
     Only a few characters are supported, mainly alphanumeric & some symbols,
-    as well as whitespace
-    [a-z], [A-Z], [0-9], [ !"$%()-+=/.,<>'#:;[]?]
+    as well as whitespace:
+    [a-z], [A-Z], [0-9], [any from "!"$%()-+=/.,<>'#:;[]?"]
 
     Inspiration: "https://fsymbols.com/generators/tarty/"
 
     Arguments:
         text (str): The text to be transformed
 
-    Optional arguments:
+    Optional keyword arguments:
         spacegap (int): The gap (width) of 1 space
 
     Example use:
-    print(huge_text("hello world"))
+        print(huge_text("hello world"))
     """
 
     require_type(text, str, arg_name="text", func_name="huge_text()")
@@ -1054,9 +1058,7 @@ class StringMethods(UserString):
     with all the same methods as regular strings.
 
     Initializing StringMethods class:
-
-    Example:
-    string = StringMethods("Hello world")
+        string = StringMethods("Hello world")
 
     Note:
     You can make the string mutable if you wish, simply use the keyword
@@ -1070,14 +1072,14 @@ class StringMethods(UserString):
     Link [1]: https://www.geeksforgeeks.org/collections-userstring-in-python/
     """
 
-    def __init__(self, seq: str, mutable: bool = False) -> None:
+    def __init__(self, seq: str, *, mutable: bool = False) -> None:
         """
         StringMethods class constructor
 
         Arguments:
             string (str): The string
 
-        Optional arguments:
+        Optional keyword arguments:
             mutable (bool): Choose whether to make the string mutable
 
         Note:
@@ -1124,6 +1126,9 @@ class StringMethods(UserString):
     def setmutable(self) -> None:
         """
         Manually sets the string to a mutable string
+        
+        Example use:
+            string.setmutable()
         """
 
         self.mutable = True
@@ -1147,7 +1152,7 @@ class StringMethods(UserString):
 
     # ---------------- Bool Returns ----------------
 
-    def contains(self, char: str, casesensitive: bool = True) -> bool:
+    def contains(self, char: str, *, casesensitive: bool = True) -> bool:
         """
         Returns True if given char is in the string,
         otherwise returns False
@@ -1155,11 +1160,11 @@ class StringMethods(UserString):
         Arguments:
             char (str): Character to be checked
 
-        Optional arguments:
+        Optional keyword arguments:
             casesensitive (bool): Specify if uppercase and lowercase matters
 
         Example use:
-        print(string.contains("h", casesensitive=False))
+            print(string.contains("h", casesensitive=False))
         """
 
         require_type(char,
@@ -1175,7 +1180,7 @@ class StringMethods(UserString):
             return char.lower() in self.data.lower()
         return str(char) in self.data
 
-    def containsany(self, chars: Iterable, casesensitive: bool = True) -> bool:
+    def containsany(self, chars: Iterable, *, casesensitive: bool = True) -> bool:
         """
         Returns True if any given chars are in the string,
         otherwise returns False
@@ -1183,11 +1188,11 @@ class StringMethods(UserString):
         Arguments:
             chars (str): Characters to be checked (must be iterable)
 
-        Optional arguments:
+        Optional keyword arguments:
             casesensitive (bool): Specify if uppercase and lowercase matters
 
         Example use:
-        print(string.containsany("hwokdbe", casesensitive=False))
+            print(string.containsany("hwokdbe", casesensitive=False))
         """
 
         require_type(casesensitive,
@@ -1209,7 +1214,7 @@ class StringMethods(UserString):
         Returns True if string has any digits [0-9]
 
         Example use:
-        print(string.hasdigit())
+            print(string.hasdigit())
         """
 
         return bool(self.digits)
@@ -1219,7 +1224,7 @@ class StringMethods(UserString):
         Returns True if string has any lowercase letters [a-z]
 
         Example use:
-        print(string.haslower())
+            print(string.haslower())
         """
 
         return bool(self.alphalower)
@@ -1229,7 +1234,7 @@ class StringMethods(UserString):
         Returns True if string has any uppercase letters [A-Z]
 
         Example use:
-        print(string.hasupper())
+            print(string.hasupper())
         """
 
         return bool(self.alphaupper)
@@ -1240,7 +1245,7 @@ class StringMethods(UserString):
         [Everything but alphanumeric characters]
 
         Example:
-        print(string.hassymbol())
+            print(string.hassymbol())
         """
 
         return bool(self.other)
@@ -1250,7 +1255,7 @@ class StringMethods(UserString):
         Returns True if string has whitespace
 
         Example use:
-        print(string.haswhitespace())
+            print(string.haswhitespace())
         """
 
         return self.contains(" ")
@@ -1260,7 +1265,7 @@ class StringMethods(UserString):
         Checks if string appears to be a valid email address
 
         Example use:
-        print(string.isemail())
+            print(string.isemail())
         """
 
         pattern = re.compile(r"\"?([-a-zA-Z\d.`?{}]+@\w+\.\w+)\"?")
@@ -1276,7 +1281,7 @@ class StringMethods(UserString):
         (Mainly intended for input validation)
 
         Example use:
-        print(string.isyes())
+            print(string.isyes())
         """
 
         if self.data.lower() in (
@@ -1296,7 +1301,7 @@ class StringMethods(UserString):
         Shuffles the string in a random order and returns a new string
 
         Example use:
-        print(string.shuffle())
+            print(string.shuffle())
         """
 
         return self.checkmutable(
@@ -1305,6 +1310,7 @@ class StringMethods(UserString):
 
     def removechars(self,
                     chars: Iterable,
+                    *,
                     casesensitive: bool = True) -> Optional[str]:
         """
         Remove all instances of specified characters from string
@@ -1312,12 +1318,12 @@ class StringMethods(UserString):
         Arguments:
             chars (list, string, ...): Characters to remove (must be iterable)
 
-        Optional arguments:
+        Optional keyword arguments:
             casesensitive (bool): Specify if uppercase and lowercase matters
 
         Example use:
-        print(string.removechars("a"))
-        print(string.removechars(["a", "b", "c"])
+            print(string.removechars("a"))
+            print(string.removechars(["a", "b", "c"])
         """
 
         require_type(casesensitive,
@@ -1341,7 +1347,7 @@ class StringMethods(UserString):
         Reverses a string
 
         Example use:
-        print(string.reverse())
+            print(string.reverse())
         """
 
         return self.checkmutable(self.data[::-1])
@@ -1354,7 +1360,7 @@ class StringMethods(UserString):
             amt (int): Amount of newlines to be added
 
         Example use:
-        print(string.up(3))
+            print(string.up(3))
         """
 
         require_type(amt, int, arg_name="amt", func_name="StringMethods.up()")
@@ -1369,7 +1375,7 @@ class StringMethods(UserString):
             amt (int): Amount of newlines to be added
 
         Example use:
-        print(string.down(3))
+            print(string.down(3))
         """
 
         require_type(amt,
@@ -1387,7 +1393,7 @@ class StringMethods(UserString):
             amt (int): Amount of newlines to be added
 
         Example use:
-        print(string.updown(3))
+            print(string.updown(3))
         """
 
         require_type(amt,
@@ -1397,16 +1403,18 @@ class StringMethods(UserString):
 
         return self.checkmutable(("\n" * amt) + self.data + ("\n" * amt))
 
-    def expand(self, spaces: int = 1, fill: str = " ") -> Optional[str]:
+    def expand(self, spaces: int = 1, *, fill: str = " ") -> Optional[str]:
         """
         Puts specified amt. of spaces between characters
 
         Optional arguments:
             spaces (int): Amount of spaces between each character
+        
+        Optional keyword arguments:
             fill (str): Replace spaces with specified character
 
         Example use:
-        print(string.expand(3))
+            print(string.expand(3, fill="-"))
         """
 
         require_type(spaces,
@@ -1429,7 +1437,7 @@ class StringMethods(UserString):
             n (int): Number of characters
 
         Example use:
-        string -= 1
+            string -= 1
         """
 
         require_type(n, int, arg_name="n", func_name="__sub__")
@@ -1450,7 +1458,7 @@ class StringMethods(UserString):
             format_spec (str): The format specifier
 
         Example use:
-        print(f"{string:hide}")
+            print(f"{string:hide}")
 
         New format specifiers:
             1) "hide": Hides the string (as a password; bulletpoints)
@@ -1480,6 +1488,7 @@ class StringMethods(UserString):
     # ---------------- None Returns ----------------
 
     def flush(self,
+              *,
               timeout: float = 0.06,
               cursor: bool = True,
               **kwargs) -> None:
@@ -1488,17 +1497,15 @@ class StringMethods(UserString):
         Prints each characters in the string one after another,
         in a smooth animation
 
-        Optional arguments:
+        Optional keyword arguments:
             timeout (float): Time in seconds to wait after printing last character
             cursor (bool) Display a cursor bar as if somebody is manually typing
-
-        Optional keyword arguments:
             pauseatchars (list): Wait for pausetimeout at these chars (see below)
             pausetimeout (float, int): Time in seconds to wait at each pause
 
         Example use:
-        string = StringMethods("Hello everyone, my name is Steve")
-        string.flush()
+            string = StringMethods("Hello everyone, my name is Steve")
+            string.flush()
         """
 
         # To avoid 'Dangerous default value [] as argument' warning
@@ -1543,7 +1550,7 @@ class StringMethods(UserString):
             end (str): Specify character at end of string
 
         Example use:
-        string.printchars()
+            string.printchars()
         """
 
         require_type(end,
@@ -1566,7 +1573,7 @@ class StringMethods(UserString):
             n (int): Number of characters
 
         Example use:
-        print(string.splitevery(2))
+            print(string.splitevery(2))
         """
 
         require_type(n,
@@ -1575,6 +1582,7 @@ class StringMethods(UserString):
                      func_name="StringMethods.splitevery()")
 
         # Returns a list, cannot change type if mutable
+        # self.checkmutable not required here
         return re.findall(("." * n) + "?", self.data)
 
     # Methods below from the str class have already been adjusted in the
@@ -1625,9 +1633,8 @@ def timethis(func):
     It will print out the result to the screen
 
     Example use:
-
-    @timethis
-    some_calculation(1, 3, 5, 2)
+        @timethis
+        def some_process(...): ...
     """
 
     @wraps(func)
@@ -1831,8 +1838,8 @@ def for_each(obj: Iterable, func: Callable, *args, **kwargs) -> Any:
     The print function will print any other arguments before the item
 
     Example use:
-    for_each([1, 2, 3], print, "Number:", end=" ")
-    lst = for_each([4, 5, 6], pow, 3)
+        for_each([1, 2, 3], print, "Number:", end=" ")
+        lst = for_each([4, 5, 6], pow, 3)
     """
     if func is print:
         returns = tuple(func(*args, i, **kwargs) for i in obj)
@@ -1875,20 +1882,17 @@ class Xrange:
             3 args: drange(start, stop, step)
 
         Optional keyword arguments:
-
             convertint (bool): Convert floats with finite integral
                             value to int (default: True)
             inclusive (bool):  Change the final value to the stop value,
                             instead of stop minus step (default: False)
 
         Returns:
-
             drange (iterator): Iterator of the values provided
 
         Example use:
-
-        for i in Xrange(0, 100, 0.01, inclusive=True):
-            print(i, end=", ")
+            for i in Xrange(0, 100, 0.01, inclusive=True):
+                print(i, end=", ")
         """
 
         require_type(convertint,
@@ -2008,21 +2012,19 @@ def menu(*args,
         verticalspacing (int): The spaces on the top & bottom of the menu
         title (str): The name of the menu (displays at the top)
         label (bool): Choose to display menu option numbers
-
         border (str): The style of border you would like
-            border options:
-            default, clean, bold, wiggle, double
-
+                      border options:
+                      default, clean, bold, wiggle, double
         position (str): Choose where to position the menu options
-            position options:
-            left, right, center
+                        position options:
+                        left, right, center
 
     If you want to pass a collection (list, tuple, dict, set, etc.) into
     this function, use the built-in unpacking operator (*) before the argument
 
     Example use:
-    lst = ["option 1", "option 2", "option 3"]
-    menu(lst)
+        lst = ["option 1", "option 2", "option 3"]
+        menu(lst)
     """
 
     if len(args) < 1:
@@ -2114,3 +2116,4 @@ if __name__ == "__main__":
     
     # TODO: Xrange testing
     # TODO: for_each testing
+    # TODO: Fix countdown
