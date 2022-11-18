@@ -63,9 +63,6 @@ def printf(*arguments,
 
     Other keyword arguments are passed to print()
 
-    Returns:
-        None
-
     Below are all the available tag names
     (use printf(showexamples=True) for examples)
 
@@ -253,9 +250,6 @@ def errmsg(*args, **kwargs) -> None:
     Prints a red error message (to sys.stderr)
     Arguments are passed to printf()
 
-    Returns:
-        None
-
     Example use:
         errmsg("Invalid input, please try again")
     """
@@ -270,10 +264,7 @@ def successmsg(*args, **kwargs) -> None:
     """
     Prints a green success message
     Arguments are passed to printf()
-
-    Returns:
-        None
-
+    
     Example use:
         successmsg("Downloaded successfully")
     """
@@ -290,9 +281,6 @@ def install_module(module_name: str) -> None:
 
     Arguments:
         module_name (str): The name of the module
-
-    Returns:
-        None
 
     Example use:
         install_module("some_module")
@@ -334,7 +322,8 @@ def get_input(prompt: str = "",
               exitinput: Optional[Any] = None,
               showaccepted: bool = False,
               wrongtypemsg: Optional[str] = None,
-              unacceptedmsg: Optional[str] = None) -> Any:
+              unacceptedmsg: Optional[str] = None,
+              defaultvalue: Any = None) -> Any:
 
     """
     Repeats input prompt until an input can be casted to the correct type,
@@ -347,8 +336,9 @@ def get_input(prompt: str = "",
     Optional keyword arguments:
         accepted (Any): A single value, or a tuple/list/range
                         of values that can be accepted
+        defaultvalue (Any): Value to return if exit input is given
         exitinput (str): A single string, or a tuple/list of strings, that
-                         when given as an input, exit the loop (returns -1)
+                         when given as an input, exit the loop (returns defaultvalue)
         showaccepted (bool): Shows the acceptable values when an unacceptable
                              value is given
         wrongtypemsg (str): The message to be shown when the input cannot be
@@ -393,7 +383,7 @@ def get_input(prompt: str = "",
     check_accepted = False
     if accepted is not None:
 
-        if isinstance(accepted, (list, tuple, range)):
+        if isinstance(accepted, (list, tuple, range, Xrange)):
 
             accepted = list(accepted)
             for index, i in enumerate(accepted):
@@ -436,7 +426,8 @@ def get_input(prompt: str = "",
                 if not isinstance(i, str):
                     raise TypeError("All values in 'exitinput' sequence "
                                     "must be type 'str'")
-
+            
+            exitinputs = list(exitinput)
             check_exit = True
 
         else:
@@ -452,14 +443,14 @@ def get_input(prompt: str = "",
         userinput = input(prompt)
         if check_exit:
             if userinput in exitinputs:
-                return -1
+                return defaultvalue
         try:
             userinput = inputtype(userinput)
         except ValueError:
             if wrongtypemsg is None:
-                print("Invalid input")
+                errmsg("Invalid input")
             else:
-                print(wrongtypemsg)
+                errmsg(wrongtypemsg)
         else:
             if not check_accepted:
                 return userinput
@@ -468,12 +459,12 @@ def get_input(prompt: str = "",
                 return userinput
 
             if showaccepted:
-                print(f"Value must be in list: {accepted_list}")
+                errmsg(f"Value must be in list: {accepted_list}")
             else:
                 if unacceptedmsg is None:
-                    print("Value not accepted")
+                    errmsg("Value not accepted")
                 else:
-                    print(unacceptedmsg)
+                    errmsg(unacceptedmsg)
 
 
 def as_price(number: Union[int, float], *, currency: str = "€") -> str:
@@ -564,12 +555,12 @@ def dice_roll(*, animation: bool = True) -> int:
     return r
 
 
-def file_getrows(file_name: str, *, delimiter: str = ",",
+def csv_getrows(file_name: str, *, delimiter: str = ",",
                 encoding: str = "utf-8") -> List:
 
     """
     Read & split each line in a given file
-    Mainly intended for CSV or Text Files
+    Mainly intended for CSV Files
 
     Arguments:
         file_name (str): The name of the file to be read
@@ -909,8 +900,9 @@ def countdown(*args, **kwargs) -> None:
     Optional keyword arguments:
         position (str):
             Specify where to position the countdown on the screen
-            This uses built in python functions, so you can customize
-            the position yourself, e.g. "position = rjust(20)"
+            This uses built in python string methods, so you can customize
+            the position yourself, e.g. "position = 'rjust(20)'"
+            Note: You must pass the method as a string
 
             Available positions:
             ljust(x), rjust(x), center(x), default,
@@ -924,14 +916,11 @@ def countdown(*args, **kwargs) -> None:
             default, words, letters
 
         blink (bool): Choose whether to display a blinking arrow or not
-
-    Returns:
-        None
-
+        
     Example uses:
-    countdown(10) [10 seconds]
-    countdown(2, 30) [2 minutes, 30 seconds]
-    countdown(8, 1, 32) [8 hours, 1 minute, 32 seconds]
+        countdown(10) [10 seconds]
+        countdown(2, 30) [2 minutes, 30 seconds]
+        countdown(8, 1, 32) [8 hours, 1 minute, 32 seconds]
     """
 
     blinker = kwargs.get("blink", False)
@@ -959,8 +948,8 @@ def countdown(*args, **kwargs) -> None:
     # 'display' kwarg - specify how the countdown should be displayed
     hrsep, minsep, secsep = {
         "default": [":", ":", ""],
-        "words": ["hours", "minutes", "seconds"],
-        "letters": ["h", "m", "s"],
+        "words": [" hours ", " minutes ", " seconds "],
+        "letters": ["h ", "m ", "s "],
     }.get(
         kwargs.get("display", "default"),
         [":", ":", ""]
@@ -991,7 +980,7 @@ def countdown(*args, **kwargs) -> None:
                              "argument, but none were given")
         elif length > 3:
             raise ValueError("countdown() takes max. 3 arguments "
-                             "but {length} were given")
+                             f"but {length} were given")
 
     for i in args:
         if not isinstance(i, (float, int)):
@@ -1118,7 +1107,7 @@ class StringMethods(UserString):
     Link [1]: https://www.geeksforgeeks.org/collections-userstring-in-python/
     """
 
-    def __init__(self, seq: str, *, mutable: bool = False) -> None:
+    def __init__(self, seq: str, *, inplace: bool = False) -> None:
         """
         StringMethods class constructor
 
@@ -1126,38 +1115,37 @@ class StringMethods(UserString):
             string (str): The string
 
         Optional keyword arguments:
-            mutable (bool): Choose whether to make the string mutable
-
-        Returns:
-            None
+            inplace (bool): Choose whether to make the string mutable -
+                            This will modify the string in place (returns nothing)
 
         Note:
-        If you make the string mutable, method behaviour is altered.
-        Instead of the following example
-        (in the case of a regular, immutable string):
-            string = string.shuffle()
+        If you make the string mutable by using the inplace keyword argument,
+        method behaviour is altered.
+        
+        Instead of the following example (in the case of a regular, immutable string):
+            string = string.shuffle() -> Returns new value
+            
         It would be (in the case of a mutable string):
             string.shuffle() -> This will change the value in place
 
         This would be the case with all methods that return a string;
         Other methods, such as .contains() (which returns a boolean value),
-        will still work as normal
+        will still work as normal.
         """
 
-        require_type(mutable,
+        require_type(inplace,
                      bool,
-                     arg="mutable",
-                     func="StringMethods.__init__")
+                     arg="inplace",
+                     func="StringMethods.__init__()")
 
         # Initialize inherited class
         super().__init__(seq)
 
-        # Check if user activated mutable string
-        self.mutable = mutable
+        # Check if user activated inplace / mutable string
+        self.mutable = inplace
 
         # Instance variables
-        self.length = len(self.data)
-        self.len = self.length
+        self.length = self.len = len(self.data)
         self.charlist = [i for i in self.data]
         self.charset = set(i for i in self.data)
         self.digits = "".join(i for i in self.data if i in "0123456789")
@@ -1178,13 +1166,16 @@ class StringMethods(UserString):
 
         Example use:
             string.setmutable()
+        
+        See StringMethods.__init__.__doc__ for more info.
         """
 
         self.mutable = True
 
-    def checkmutable(self, new: str) -> Optional[str]:
+    def _mutable_check(self, new: str) -> Optional[str]:
         """
         Checks if user has enabled mutable string during initialization
+        [Intended for internal use only]
 
         Arguments:
             new (str): The new version of "self.data" to be set or returned
@@ -1194,7 +1185,7 @@ class StringMethods(UserString):
             self.data = new
 
             # If mutable, initalized variables must be updated
-            StringMethods.__init__(self, self.data, mutable=True)
+            StringMethods.__init__(self, self.data, inplace=True)
             return None
 
         return new
@@ -1230,7 +1221,7 @@ class StringMethods(UserString):
         return str(char) in self.data
 
     def containsany(self,
-                    chars: Iterable,
+                    chars: Iterable[str],
                     *,
                     casesensitive: bool = True) -> bool:
         """
@@ -1238,7 +1229,7 @@ class StringMethods(UserString):
         otherwise returns False
 
         Arguments:
-            chars (str): Characters to be checked (must be iterable)
+            chars (list, str, ...): Characters to be checked (must be iterable)
 
         Optional keyword arguments:
             casesensitive (bool): Specify if uppercase and lowercase matters
@@ -1347,6 +1338,37 @@ class StringMethods(UserString):
         return False
 
     # ---------------- String Returns ----------------
+    
+    
+    def only(self, chars: Iterable[str], *, casesensitive: bool = True) -> Optional[str]:
+        """
+        Returns a new string with only these characters
+        
+        Arguments:
+            chars (list, str, ...): Characters to accept
+        
+        Optional keyword arguments:
+            casesensitive (bool): Specify if uppercase and lowercase matters
+        
+        Example use:
+            print(string.only("abc"))
+        """
+        
+        require_type(casesensitive,
+             bool,
+             arg="casesensitive",
+             func="StringMethods.containsany()")
+        
+        if not casesensitive:
+            chars = "".join(i.lower() for i in chars)
+            return self._mutable_check(
+                "".join(i for i in self.data if i.lower() in chars)
+            )
+
+        return self._mutable_check(
+            "".join(i for i in self.data if i in chars)
+        )
+        
 
     def shuffle(self) -> Optional[str]:
         """
@@ -1356,19 +1378,19 @@ class StringMethods(UserString):
             print(string.shuffle())
         """
 
-        return self.checkmutable(
+        return self._mutable_check(
             "".join(random.sample(self.data, self.length))
         )
 
     def removechars(self,
-                    chars: Iterable,
+                    chars: Iterable[str],
                     *,
                     casesensitive: bool = True) -> Optional[str]:
         """
         Remove all instances of specified characters from string
 
         Arguments:
-            chars (list, string, ...): Characters to remove (must be iterable)
+            chars (list, str, ...): Characters to remove (must be iterable)
 
         Optional keyword arguments:
             casesensitive (bool): Specify if uppercase and lowercase matters
@@ -1386,10 +1408,10 @@ class StringMethods(UserString):
         chars = set(str(char) for char in chars)
 
         if casesensitive:
-            return self.checkmutable(
+            return self._mutable_check(
                 "".join(i for i in self.data if i not in chars))
         else:
-            return self.checkmutable(
+            return self._mutable_check(
                 "".join(i for i in self.data if i.lower()
                         not in [j.lower() for j in chars])
             )
@@ -1402,7 +1424,7 @@ class StringMethods(UserString):
             print(string.reverse())
         """
 
-        return self.checkmutable(self.data[::-1])
+        return self._mutable_check(self.data[::-1])
 
     def up(self, amt: int = 1) -> Optional[str]:
         """
@@ -1417,7 +1439,7 @@ class StringMethods(UserString):
 
         require_type(amt, int, arg="amt", func="StringMethods.up()")
 
-        return self.checkmutable(self.data + ("\n" * amt))
+        return self._mutable_check(self.data + ("\n" * amt))
 
     def down(self, amt: int = 1) -> Optional[str]:
         """
@@ -1435,7 +1457,7 @@ class StringMethods(UserString):
                      arg="amt",
                      func="StringMethods.down()")
 
-        return self.checkmutable(("\n" * amt) + self.data)
+        return self._mutable_check(("\n" * amt) + self.data)
 
     def updown(self, amt: int = 1) -> Optional[str]:
         """
@@ -1453,7 +1475,7 @@ class StringMethods(UserString):
                      arg="amt",
                      func="StringMethods.updown()")
 
-        return self.checkmutable(("\n" * amt) + self.data + ("\n" * amt))
+        return self._mutable_check(("\n" * amt) + self.data + ("\n" * amt))
 
     def expand(self, spaces: int = 1, *, fill: str = " ") -> Optional[str]:
         """
@@ -1478,10 +1500,10 @@ class StringMethods(UserString):
                      arg="fill",
                      func="StringMethods.expand()")
 
-        return self.checkmutable(
+        return self._mutable_check(
             "".join(char + (fill * spaces) for char in self.data))
 
-    def __sub__(self, n: int) -> str:
+    def __sub__(self, n: int) -> "StringMethods":
         """
         Takes n characters from the end of the string
 
@@ -1494,11 +1516,17 @@ class StringMethods(UserString):
 
         require_type(n, int, arg="n", func="__sub__")
 
-        # self.checkmutable is not required here
+        # self._mutable_check is not required here
         # "string - 1" as a statement by itself doesn't really make sense
         # "string -= 1" is better
-
-        return "".join(self.data[:-n])
+        
+        # __sub__ Not implimented in collections.UserString, and returns the
+        # incorrect value, so return StringMethods type manually
+        
+        # Compensate for mutable strings
+        if self.mutable:
+            return StringMethods("".join(self.data[:-n]), inplace=True)
+        return StringMethods("".join(self.data[:-n]))
 
     def __format__(self, format_spec: str) -> str:
 
@@ -1529,7 +1557,7 @@ class StringMethods(UserString):
             string = string[::-1]
             format_spec = format_spec.replace("rev", "")
 
-        # __format__ must return str, not None, so self.checkmutable
+        # __format__ must return str, not None, so self._mutable_check
         # is not required here
 
         if len(format_spec) > 0:
@@ -1635,7 +1663,7 @@ class StringMethods(UserString):
                      func="StringMethods.splitevery()")
 
         # Returns a list, cannot change type if mutable
-        # self.checkmutable not required here
+        # self._mutable_check not required here
         return re.findall(("." * n) + "?", self.data)
 
     # Methods below from the str class have already been adjusted in the
@@ -1644,38 +1672,38 @@ class StringMethods(UserString):
     # is mutable or not
 
     # Return type of all methods below -> Optional[str]
-    def capitalize(self, *args): return self.checkmutable(
+    def capitalize(self, *args): return self._mutable_check(
         self.data.capitalize(*args))
 
-    def expandtabs(self, *args): return self.checkmutable(
+    def expandtabs(self, *args): return self._mutable_check(
         self.data.expandtabs(*args))
 
-    def format_map(self, *args): return self.checkmutable(
+    def format_map(self, *args): return self._mutable_check(
         self.data.format_map(*args))
 
-    def translate(self, *args): return self.checkmutable(
+    def translate(self, *args): return self._mutable_check(
         self.data.translate(*args))
 
-    def swapcase(self, *args): return self.checkmutable(
+    def swapcase(self, *args): return self._mutable_check(
         self.data.swapcase(*args))
 
-    def casefold(self, *args): return self.checkmutable(
+    def casefold(self, *args): return self._mutable_check(
         self.data.casefold(*args))
 
-    def replace(self, *args): return self.checkmutable(
+    def replace(self, *args): return self._mutable_check(
         self.data.replace(*args))
 
-    def join(self, *args): return self.checkmutable(self.data.join(*args))
-    def ljust(self, *args): return self.checkmutable(self.data.ljust(*args))
-    def lower(self, *args): return self.checkmutable(self.data.lower(*args))
-    def lstrip(self, *args): return self.checkmutable(self.data.lstrip(*args))
-    def center(self, *args): return self.checkmutable(self.data.center(*args))
-    def rjust(self, *args): return self.checkmutable(self.data.rjust(*args))
-    def rstrip(self, *args): return self.checkmutable(self.data.rstrip(*args))
-    def strip(self, *args): return self.checkmutable(self.data.strip(*args))
-    def title(self, *args): return self.checkmutable(self.data.title(*args))
-    def upper(self, *args): return self.checkmutable(self.data.upper(*args))
-    def zfill(self, *args): return self.checkmutable(self.data.zfill(*args))
+    def join(self, *args): return self._mutable_check(self.data.join(*args))
+    def ljust(self, *args): return self._mutable_check(self.data.ljust(*args))
+    def lower(self, *args): return self._mutable_check(self.data.lower(*args))
+    def lstrip(self, *args): return self._mutable_check(self.data.lstrip(*args))
+    def center(self, *args): return self._mutable_check(self.data.center(*args))
+    def rjust(self, *args): return self._mutable_check(self.data.rjust(*args))
+    def rstrip(self, *args): return self._mutable_check(self.data.rstrip(*args))
+    def strip(self, *args): return self._mutable_check(self.data.strip(*args))
+    def title(self, *args): return self._mutable_check(self.data.title(*args))
+    def upper(self, *args): return self._mutable_check(self.data.upper(*args))
+    def zfill(self, *args): return self._mutable_check(self.data.zfill(*args))
 
 
 def timethis(func):
@@ -1722,18 +1750,20 @@ def helpme():
     print("\nWelcome to the darraghs_library interactive help function. "
           "Here are the available functions, classes, and more information "
           "that you may be interested in.\n")
-
+    
     functions = [
-        i for i in globals() if type(eval(i)).__name__ == "function"
-        if i not in ("wraps", "check_call")
+        key for key, value in globals().items()
+        if type(value).__name__ == "function"
+        if key not in ("wraps", "check_call")
     ]
-
+    
     dundervars = [
-        i for i in globals() if i.startswith("__") and i.endswith("__")
+        key for key in globals() if key.startswith("__")
+        and key.endswith("__")
     ]
-
+    
     classes = ["colors", "Lorem", "StringMethods", "Xrange"]
-
+    
     all_attr = functions + dundervars + classes
     all_attr_lower = [i.lower() for i in all_attr]
 
@@ -1850,8 +1880,11 @@ def helpme():
             attr = all_attr[attr_index]
 
             name = attr
-            value = eval(attr)
+            value = globals()[attr]
             _type = type(value).__name__
+            
+            if _type in ("ABCMeta", "type"):
+                _type = "class"
 
             if attr_index in range(func_len, func_len + dund_len):
                 print(f"| Name: {name}")
@@ -2054,6 +2087,7 @@ def menu(*args,
          label: bool = False,
          border: str = "default",
          position: str = "left",
+         newline: bool = True,
          ) -> None:
 
     """
@@ -2073,9 +2107,7 @@ def menu(*args,
         position (str): Choose where to position the menu options
                         position options:
                         left, right, center
-
-    Returns:
-        None
+        newline (bool): Add a newline after printing the menu
 
     If you want to pass a collection (list, tuple, dict, set, etc.) into
     this function, use the built-in unpacking operator (*) before the argument
@@ -2166,10 +2198,13 @@ def menu(*args,
         + horizontal[chosen] * (minlen + spacing * 2)
         + bottomright[chosen]
     )
+    
+    if newline:
+        print()
 
 
 if __name__ == "__main__":
-
+    
     pass
 
     # TODO: Xrange testing
