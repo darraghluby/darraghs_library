@@ -1,4 +1,4 @@
-""" type_validation.py module for darraghs_library.py """
+""" type_validation.py module for __init__.py """
 
 # For type hinting
 from typing import (
@@ -90,7 +90,7 @@ def require_type(value: Any,
                      check_own_args=[5])
 
     if 5 in checkargs:
-        require_type(accepted, list, None,
+        require_type(accepted, list, None, tuple,
                      arg="accepted",
                      func="require_type()",
                      check_own_args=[])
@@ -143,4 +143,10 @@ def require_type(value: Any,
     if accepted:
         if value not in accepted:
             raise ValueError(f"Argument{arg}{func} not accepted - "
-                             f"Value must be in list: \n{accepted}")
+                             f"Value must be in: {accepted}")
+
+
+if __name__ == "__main__":
+    
+    var = 3.5
+    require_type(var, float, arg="var")

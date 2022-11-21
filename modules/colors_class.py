@@ -1,4 +1,4 @@
-""" colors.py module for darraghs_library.py"""
+""" colors.py module for __init__.py"""
 
 
 class colors:

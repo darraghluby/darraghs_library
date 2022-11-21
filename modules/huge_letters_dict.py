@@ -1,4 +1,4 @@
-""" huge_letters_dict.py module for darraghs_library.py """
+""" huge_letters_dict.py module for __init__.py """
 
 HUGE_LETTERS = {
     "a": ["░█████╗░", "██╔══██╗", "███████║",
