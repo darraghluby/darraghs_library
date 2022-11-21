@@ -12,7 +12,7 @@ If you want to, you can download the files now:
 
 ![image 1](images/ss1.png)
 
-From here, you can extract the main folder ("darraghs_library"),
+From here, you can extract the main folder ("__init__.py"),
 and to import the module into your own new Python file, create that file in the same folder.
 
 ### Using the module
