@@ -147,6 +147,7 @@ def require_type(value: Any,
 
 
 if __name__ == "__main__":
-    
-    var = 3.5
-    require_type(var, float, arg="var")
+
+    var = 3.4
+    require_type(var, int, arg="var")
+

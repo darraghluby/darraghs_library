@@ -1718,7 +1718,7 @@ def helpme():
         and key.endswith("__")
     ]
 
-    classes = ["colors", "Lorem", "StringMethods", "Xrange"]
+    classes = ["colors", "Lorem", "StringMethods", "Xrange", "Table"]
 
     all_attr = functions + dundervars + classes
     all_attr_lower = [i.lower() for i in all_attr]
@@ -2307,9 +2307,147 @@ class Table:
         return f"Table(rownum={self.rownum}, colnum={self.colnum}, align={self.align}, justify={self.justify})"
 
 
-if __name__ == "__main__":
+def as_word(num: Union[float, int], *, zero: bool = True) -> str:
+    """
+    Converts a word to its English word representation
+    
+    Arguments:
+        num (int): Number to be converted
+    
+    Example use:
+        print(as_word(123.5)) -> "one hundred twenty-three point five"
+        print(as_word(3523)) -> "three thousand five hundred twenty-three"
+        
+    Note:
+    Highest number = 10^100 (1 Googol)
+    """
+    
+    require_type(num, float, int, arg="num", func="as_word()")
+    require_type(zero, bool, arg="zero", func="as_word()", accepted=(True,))
+    
+    # Intended for inner use only
+    if num == 0 and zero:
+        return "zero"
 
-    helpme()
+    def formatstr(string: str) -> str:
+        """
+        Removes any extra spaces in given string
+        and replaces with a single space
+        
+        Arguments:
+            string (str): The string to format
+        """
+        
+        return " ".join(string.split())
+    
+    numstr = str(num)
+    numlen = len(numstr)
+    
+    # Digits & irregular numbers
+    numdict = {
+        0: "",
+        1: "one",
+        2: "two",
+        3: "three",
+        4: "four",
+        5: "five",
+        6: "six",
+        7: "seven",
+        8: "eight",
+        9: "nine",
+        10: "ten",
+        11: "eleven",
+        12: "twelve",
+        13: "thirteen",
+        14: "fourteen",
+        15: "fifteen",
+        16: "sixteen",
+        17: "seventeen",
+        18: "eighteen",
+        19: "nineteen",
+        20: "twenty",
+        30: "thirty",
+        40: "fourty",
+        50: "fifty",
+        60: "sixty",
+        70: "seventy",
+        80: "eighty",
+        90: "ninety",
+    }
+    
+    if num == 10**100:
+        return "one googol"
+    
+    if num > 10**100:
+        raise ValueError("Number is too large -> Max: 10^100")
+    
+    if num < 0:
+        return formatstr("negative " + as_word(abs(num), zero=False))
+    
+    if "." in numstr:
+        
+        first, second = numstr.split(".")
+        
+        decimal = " point " + " ".join([as_word(int(i), zero=False) for i in second])
+        
+        # Common decimal place names
+        if int(second) == 125: decimal = " and one eight"
+        elif int(second) == 25: decimal = " and one quarter"
+        elif int(second) == 33: decimal = " and one third"
+        elif int(second) == 16: decimal = " and one sixth"
+        elif int(second) == 75: decimal = " and three quarters"
+        elif int(second) == 66: decimal = " and two thirds"
+        elif int(second) == 11: decimal = " and one ninth"
+        elif int(second) == 14: decimal = " and one seventh"
+        elif int(second) == 1: decimal = " and one tenth"
+        elif int(second) == 2: decimal = " and one fifth"
+        elif int(second) == 3: decimal = " and three tenths"
+        elif int(second) == 4: decimal = " and two fifths"
+        elif int(second) == 5: decimal = " and a half"
+        elif int(second) == 6: decimal = " and three fifths"
+        elif int(second) == 7: decimal = " and seven tenths"
+        elif int(second) == 8: decimal = " and four fifths"
+        elif int(second) == 9: decimal = " and nine tenths"
+            
+        return formatstr(as_word(int(first), zero=False) + decimal)
+    
+    if num in numdict and num != 0:
+        return formatstr(numdict[int(num)])
+    
+    if numlen == 2:
+        return formatstr(numdict[int(numstr[0] + "0")] + "-" + numdict[int(numstr[1])])
+
+    if numlen < 4 and num != 0:
+        return formatstr(as_word(int(numstr[0]), zero=False)) + " hundred " + as_word(int(numstr[1:]), zero=False)
+    
+    names = [
+        "thousand", "million", "billion", "trillion", "quadrillion",
+        "quintillion", "sextillion", "septillion", "octillion", "nonillion",
+        "decillion", "undecillion", "duodecillion", "tredecillion",
+        "quattuordecillion", "quindecillion", "sexdicillion", "septendcillion",
+        "octodecillion", "novemdecillion", "vigintillion", "unvigintillion",
+        "duovigintillion", "trevigintillion", "quattorvingintillion",
+        "quinvintillion", "sexvigintillion", "septenvigintillion", "octovigintillion",
+        "novemvigintillion", "trigintillion", "untrigintillion", "duotrigintillion",
+    ]
+    
+    if numlen in range(4, 100_000, 3):
+        name = names[(numlen // 3) - 1]
+        return formatstr(as_word(int(numstr[0]), zero=False) + f" {name} " + as_word(int(numstr[1:]), zero=False))
+    
+    if numlen in range(5, 100_000, 3):
+        name = names[(numlen // 3) - 1]
+        return formatstr(as_word(int(numstr[0:2]), zero=False) + f" {name} " + as_word(int(numstr[2:]), zero=False))
+    
+    if numlen in range(6, 100_000, 3):
+        name = names[(numlen // 3) - 2]
+        return formatstr(as_word(int(numstr[0:3]), zero=False) + f" {name} " + as_word(int(numstr[3:]), zero=False))
+    
+    return ""
+
+if __name__ == "__main__":
+    
+    pass
 
     # TODO: Xrange testing
     # TODO: for_each testing
