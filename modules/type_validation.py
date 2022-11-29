@@ -22,132 +22,152 @@ from typing import (
 )
 
 
-def require_type(value: Any,
-                 _type: Optional[type],
+def require_type(obj: Any,
+                 type_: Optional[type],
                  *types: Optional[type],
-                 arg: str = "",
-                 func: str = "",
-                 error: str = "",
-                 accepted: Optional[List] = None,
-                 **kwargs) -> None:
+                 arg: Optional[str] = None,
+                 func: Optional[str] = None,
+                 type_errmsg: Optional[str] = None,
+                 accepted: Optional[Tuple[Any, ...]] = None,
+                 ) -> None:
 
     """
-    Raises TypeError if type(value) is not a permitted type
+    Validate variable types and raise appropriate errors if the type
+    is not accepted
 
-    Can be used in functions to verify that an argument (of that function)
-    is of the correct type(s), and displays an appropriate error otherwise
+    - Mainly intended for use inside functions, to verify arguments
+      of that function
 
     Arguments:
-        value (Any): The value whose type is being checked
-        types (type): The allowed type(s) (can be 1 or more arguments)
+        obj (Any): The object to be checked
 
-    Optional keyword arguments:
-        arg (str): The name of the value / argument
-        func (str): The name of the function that the value is in
-        error (str): The error to be shown when not of a valid type
-        accepted (list): A list of the values that can be accepted
-        
+    Positional Arguments:
+        types (type): Any types that the object must be (at least one of)
+                     (These are all the remaining positional arguments)
+
+    Optional Keyword Arguments:
+        arg (str): The name of the argument/variable
+        func (str): The name of the function (if any)
+        type_errmsg (str): The error message to be shown if the object
+                           is an incorrect type
+        accepted (tuple): A tuple containing all values (not types) that the
+                          object can be (each value must be any of the types
+                          that werepreviously provided)
+
     Returns:
-        None
-        
-    Raises:
-        If not valid type, or not an acceptable value, the function 
-        will raise a TypeError, or a ValueError, respectively
+        None or NoReturn (may raise TypeError or ValueError
 
-    Example uses:
-        require_type(age, int, arg="age", func="age_function()")
-        require_type(name, str, None, arg="name", func="print_name()")
+    Example use:
+        x = 5
+        require_type(x, int, arg="x")         -> checks if x is int
+        require_type(x, int, float, arg="x")  -> checks if x is int OR float
     """
 
+    # Arguments to check in this function (no recursion)
+    arguments = [
+        (arg, str, repr("arg")),
+        (func, str, repr("func")),
+        (type_errmsg, str, repr("type_errmsg")),
+        (accepted, tuple, repr("accepted")),
+    ]
+
+    # Loop through arguments list to verify types
+    for a, a_type, a_name in arguments:
+        if a is not None:
+            if not isinstance(a, a_type):
+                raise TypeError(
+                    f"Argument {a_name} to require_type() must be type "
+                    f"'{a_type.__name__}' or None, "
+                    f"not '{a.__class__.__name__}'"
+                )
+
     # Remove duplicate types
-    types: set = set([_type, *types])
+    types_set: set = {type_, *types}
 
-    # Check this function's own arguments (inner use only)
-    checkargs: list = kwargs.get("check_own_args", [1, 2, 3, 4, 5])
+    # Ensure each type given is a valid type (or None)
+    for t in types_set:
+        if t is not None:
+            if not isinstance(t, type):
+                raise TypeError(
+                    f"Each positional type argument to require_type() must be "
+                    f"type 'type' or None, not '{t.__class__.__name__}'"
+                )
 
-    if 1 in checkargs:
-        require_type(*types, type, None,
-                     arg="types",
-                     func="require_type()",
-                     check_own_args=[2, 3, 4, 5])
+    # Represent type names (e.g. str) as "'str'" instead of "'<class 'str'>'"
+    types: list = [
+        repr(None) if t is None else repr(t.__name__)
+        for t in types_set
+    ]
 
-    if 2 in checkargs:
-        require_type(arg, str,
-                     arg="arg",
-                     func="require_type()",
-                     check_own_args=[3, 4, 5])
+    # Format message appropriately, based on the amount of types
+    if len(types) > 1:
+        types_string = ", ".join(types[:-1]) + f" or {types[-1]}"
+    else:
+        types_string = ", ".join(types)
 
-    if 3 in checkargs:
-        require_type(func, str,
-                     arg="arg",
-                     func="require_type()",
-                     check_own_args=[4, 5])
+    arg = "" if arg is None else f"{arg} "
+    func = "" if func is None else f"to {func} "
 
-    if 4 in checkargs:
-        require_type(error, str,
-                     arg="error",
-                     func="require_type()",
-                     check_own_args=[5])
+    obj_type_name = repr(None) if obj is None else repr(obj.__class__.__name__)
 
-    if 5 in checkargs:
-        require_type(accepted, list, None, tuple,
-                     arg="accepted",
-                     func="require_type()",
-                     check_own_args=[])
+    # Compares type names, instead of comparing directly
+    if obj_type_name not in types:
+        if type_errmsg is None:
+            type_errmsg = (
+                f"Argument {arg}{func}must be type "
+                f"{types_string}, not {obj_type_name}"
+            )
+        raise TypeError(type_errmsg)
 
-    # None is not considered to be a type, it is it's own type
-    checknone = True if None in types else False
+    # Check if value can be accepted
+    if accepted is not None:
 
-    if arg:
-        arg = f" '{arg}'"
+        accepted = tuple(set(accepted))
 
-    if func:
-        func = f" to {func}"
+        for value in accepted:
 
-    if error == "":
-        # If the type is considered to be a regular type, use .__name__
-        # but if the type is None, then just use 'None'
+            # Ensure all 'accepted' values are the same type(s) that
+            # was/were provided
 
-        types2 = []
-        for t in types:
-            if isinstance(t, type):
-                types2.append(f"'{t.__name__}'")
+            if value is None:
+                value_type_name = repr(None)
+            elif value is not None:
+                value_type_name = repr(value.__class__.__name__)
+
+            if value_type_name not in types:
+                raise TypeError(
+                    f"All accepted values must be type {types_string}, "
+                    f"not {value_type_name}"
+                )
+
+            if len(accepted) >= 10:
+                accepted_values_string = f"in list:\n{accepted}"
             else:
-                types2.append(f"'{t}'")
-
-        required_types = ""
-        
-        if len(types2) == 1:
-            required_types = f"{types2[0]}"
-        else:
-            for index, t in enumerate(types2):
-                if index == len(types2) - 1:
-                    required_types += f"or {t}"
-                elif index == len(types2) - 2:
-                    required_types += f"{t} "
+                accepted_values: List[str] = [
+                    f"'{str(i)}' ({i.__class__.__name__})" for i in accepted
+                ]
+                
+                if len(accepted_values) > 1:
+                    accepted_values_string = (
+                        ", ".join(accepted_values[:-1])
+                        + f" or {accepted_values[-1]}"
+                    )
                 else:
-                    required_types += f"{t}, "
+                    accepted_values_string = ", ".join(accepted_values)
 
-        current_type = value.__class__.__name__ if value is not None else None
+            if obj is not None:
 
-        error = f"Argument{arg}{func} must be type " \
-                f"{required_types}, not '{current_type}'"
-
-    if not isinstance(value, tuple(t for t in types if t is not None)):
-        if checknone:
-            if value is not None:
-                raise TypeError(error)
-        else:
-            raise TypeError(error)
-
-    if accepted:
-        if value not in accepted:
-            raise ValueError(f"Argument{arg}{func} not accepted - "
-                             f"Value must be in: {accepted}")
+                if obj not in accepted:
+                    raise ValueError(
+                        f"Argument {arg}{func}value must be "
+                        f"{accepted_values_string}, not '{obj}'"
+                    )
 
 
 if __name__ == "__main__":
 
     var = 3.4
-    require_type(var, int, arg="var")
-
+    try:
+        require_type(var, int, arg="var")
+    except TypeError as err:
+        print(err)
