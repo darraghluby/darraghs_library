@@ -1,5 +1,6 @@
-""" colors.py module for __init__.py"""
+""" colors.py module for main.py"""
 
+# Note: ANSI escape codes may not work on some platforms
 
 class colors:
 
@@ -19,7 +20,7 @@ class colors:
 
         To apply background colors, the names are the same as the
         foreground colors, except the prefix for all background colors is "bg"
-            e.g. "bgred" or "bgdarkred"
+        e.g. "bgred" or "bgdarkred"
 
     TEXT DECORATION:
         bold (or b), italic (or i), underlined (or u), reversed (or r)
@@ -29,6 +30,7 @@ class colors:
 
     Example use:
         green_text = colors.green + "This is green" + colors.none
+        italic_text = colors.i + "Italic text" + colors.reset
     """
 
     # FOREGROUND COLORS

@@ -1,5 +1,6 @@
-""" huge_letters_dict.py module for __init__.py """
+""" huge_letters_dict.py module for main.py """
 
+# Used for huge_text() function
 HUGE_LETTERS = {
     "a": ["░█████╗░", "██╔══██╗", "███████║",
           "██╔══██║", "██║░░██║", "╚═╝░░╚═╝"],

@@ -1,5 +1,5 @@
 # Darragh's Library
-Darragh's Library is a Python module containing various functions, classes, etc. It contains bundles of code that can be used repeatedly in many different programs, and it makes working with Python simpler and more efficient.
+Darragh's Library is a Python module containing various functions, classes, etc. It contains bundles of code that can be used in many different programs, and it makes working with Python simpler and more efficient.
 
 ### Installation
 I am currently working on uploading this library to PyPi.
@@ -12,10 +12,13 @@ If you want to, you can download the files now:
 
 ![image 1](images/ss1.png)
 
-From here, you can extract the main folder ("__init__.py"),
-and to import the module into your own new Python file, create that file in the same folder.
+From here, you can extract the main folder ("__init__.py").
+To import the module into your own new Python file, create that file in the same folder.
 
 ### Using the module
 There are lots of functions and classes available that you may find useful.
-For full details on how to use them, use the helpme function:
+
+For details on how to use each of them and to view examples, see the "helpme()" function.
 `helpme()`
+
+The majority of code inside the "main.py" file includes documentation and comments which go into further detail.

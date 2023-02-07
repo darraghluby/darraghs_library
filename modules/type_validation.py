@@ -1,27 +1,19 @@
-""" type_validation.py module for __init__.py """
+""" type_validation.py module for main.py """
 
 # For type hinting
 from typing import (
     Any,
     Callable,
-    Container,
-    Dict,
-    FrozenSet,
     Iterable,
     Iterator,
     List,
-    NoReturn,
     Optional,
-    Reversible,
-    Sequence,
-    Set,
-    Tuple,
-    Type,
-    TypeVar,
     Union,
+    Tuple,
 )
 
 
+# For checking types in run-time
 def require_type(obj: Any,
                  type_: Optional[type],
                  *types: Optional[type],
@@ -36,34 +28,34 @@ def require_type(obj: Any,
     is not accepted
 
     - Mainly intended for use inside functions, to verify arguments
-      of that function
+      of said function
 
     Arguments:
         obj (Any): The object to be checked
 
     Positional Arguments:
-        types (type): Any types that the object must be (at least one of)
-                     (These are all the remaining positional arguments)
+        types (type): The types that are required.
+                      (All remaining positional arguments)
 
     Optional Keyword Arguments:
-        arg (str): The name of the argument/variable
-        func (str): The name of the function (if any)
+        arg (str): The name of the argument/variable being validated
+        func (str): The name of the function (if any) that the argument is in
         type_errmsg (str): The error message to be shown if the object
-                           is an incorrect type
+                           is of an incorrect type
         accepted (tuple): A tuple containing all values (not types) that the
                           object can be (each value must be any of the types
-                          that werepreviously provided)
+                          that were previously provided)
 
     Returns:
-        None or NoReturn (may raise TypeError or ValueError
+        None (may raise TypeError or ValueError)
 
     Example use:
         x = 5
         require_type(x, int, arg="x")         -> checks if x is int
-        require_type(x, int, float, arg="x")  -> checks if x is int OR float
+        require_type(x, int, float, str, arg="x")  -> checks if x is int OR float OR str
     """
 
-    # Arguments to check in this function (no recursion)
+    # Arguments to validate in this (require_type()) function
     arguments = [
         (arg, str, repr("arg")),
         (func, str, repr("func")),
@@ -103,14 +95,14 @@ def require_type(obj: Any,
     if len(types) > 1:
         types_string = ", ".join(types[:-1]) + f" or {types[-1]}"
     else:
-        types_string = ", ".join(types)
-
-    arg = "" if arg is None else f"{arg} "
-    func = "" if func is None else f"to {func} "
+        types_string = ", ".join(types)   
+        
+    arg = "" if arg is None or arg == "" else f"{arg} "
+    func = "" if func is None or func == "" else f"to {func} "
 
     obj_type_name = repr(None) if obj is None else repr(obj.__class__.__name__)
 
-    # Compares type names, instead of comparing directly
+    # Compares type names, instead of comparing directly, to avoid errors
     if obj_type_name not in types:
         if type_errmsg is None:
             type_errmsg = (
@@ -164,10 +156,65 @@ def require_type(obj: Any,
                     )
 
 
+def require_types(*args: Tuple[Any, ...],
+                  argnames: Optional[Tuple[str]] = None,
+                  func: Optional[str] = None) -> None:
+
+    """
+    Validate multiple variable types at once and raise appropriate error(s) if the type(s)
+    is/are not accepted (instead of separate require_type() calls)
+    This function has more limitations than require_type()
+    
+    - Mainly intended for use inside functions, to verify numerous arguments
+      of that function
+
+    Positional Arguments:
+        *args (tuple): A tuple containing the object and its required type
+
+    Optional Keyword Arguments:
+        argnames (tuple): A tuple containing all of the argument names
+                          (relative to the order that the tuple arguments were given in)
+        func (str): The name of the function (if any)
+
+    Returns:
+        None (may raise TypeError or ValueError)
+
+    Example use:
+        x = 5
+        y = "hi"
+        
+        require_types(
+            (x, int),
+            (y, str),
+            argnames=("x", "y")
+        )
+    """
+
+    require_type(func, str, None, arg="func", func="require_types()")
+
+    arg_names: list = ["" for i in args] if argnames is None else [*argnames]
+    func_name: str = "" if func is None else func
+
+    if len(args) != len(arg_names):
+        raise ValueError(f"{len(arg_names)} argument names given, expected {len(args)}")
+
+    for arg in args:
+        require_type(arg, tuple, arg="args", func="require_types()")
+        giventype = arg[1]
+        if type(giventype) != type and giventype is not None:
+            raise ValueError(f"Each type given must be type 'type' or 'None', "
+                             f"not '{giventype.__class__.__name__}'")
+
+    for argname in arg_names:
+        if not isinstance(argname, str):
+            raise ValueError(f"Each argument name given must be type 'str',"
+                             f"not '{type(argname).__name__}'")
+
+    for argname, arg in zip(arg_names, args):
+        _types = arg[1:]
+        require_type(arg[0], *_types, arg=argname, func=func_name)
+
+
 if __name__ == "__main__":
 
-    var = 3.4
-    try:
-        require_type(var, int, arg="var")
-    except TypeError as err:
-        print(err)
+    pass

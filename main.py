@@ -1,19 +1,20 @@
 """
-'darraghs_library.py'
+Darragh's Library - main.py
 
 Darragh's Library is a Python module containing various functions,
-classes, etc. It contains bundles of code that can be used repeatedly
-in many different programs, and it makes working with Python simpler and
+classes, etc. It contains bundles of code that can be used in many
+different programs,and it makes working with Python simpler and
 more efficient.
 """
 
 from __future__ import annotations
 
 __all__ = [
-    "Lorem", "StringMethods", "Xrange", "as_price", "colors", "countdown",
+    "Lorem", "StringMethods", "xrange", "as_price", "colors", "countdown",
     "dice_roll", "errmsg", "file_exists", "for_each", "get_input", "helpme",
     "huge_text", "install_module", "int_to_roman", "menu", "multiline_input",
-    "printf", "require_type", "roman_to_int", "successmsg", "timethis",
+    "printf", "require_type", "require_types", "roman_to_int", "successmsg",
+    "timethis", "num_to_word", "Table",
 ]
 
 __author__ = "Darragh Luby"
@@ -33,26 +34,21 @@ from collections import UserString
 # Related modules
 from modules.colors_class import colors
 from modules.huge_letters_dict import HUGE_LETTERS
-from modules.type_validation import (  # pylint: disable=unused-import
+from modules.type_validation import (  
     require_type,
+    require_types,
     Any,
     Callable,
-    Container,
-    Dict,
-    FrozenSet,
     Iterable,
+    Iterator,
     List,
-    NoReturn,
     Optional,
-    Sequence,
-    Set,
-    Tuple,
-    Type,
-    TypeVar,
     Union,
+    Tuple,
 )
 
 # System call - Activate ANSI codes in terminal
+# This may not work on all devices
 os.system("")
 
 
@@ -263,7 +259,7 @@ def errmsg(*args, **kwargs) -> None:
 
     args = tuple(f"{colors.red}{arg}{colors.none}" for arg in args)
 
-    # Attempts to print to sys.stderr, otherwise it just displays as red
+    # Attempts to print to sys.stderr, otherwise it displays as red
     printf(*args, file=stderr, **kwargs)
 
 
@@ -343,14 +339,14 @@ def get_input(prompt: str = "",
     Optional keyword arguments:
         accepted (Any): A single value, or a tuple/list/range
                         of values that can be accepted
-        defaultvalue (Any): Value to return if exit input is given
+        defaultvalue (Any): Value to return if an exit/escape input is given
         exitinput (str): A single string, or a tuple/list of strings,
                          that when given as an input, exit the loop
                          (returns defaultvalue)
-        showaccepted (bool): Shows the acceptable values when an unacceptable
-                             value is given
+        showaccepted (bool): When True, shows the acceptable values when
+                             an unacceptable value is given
         wrongtypemsg (str): The message to be shown when the input cannot be
-                            casted to the correct type ('inputtype')
+                            casted to the correct type (inputtype)
         unacceptedmsg (str): The message to be shown when the input is casted
                              to the correct type, but is not an accepted value
 
@@ -366,37 +362,36 @@ def get_input(prompt: str = "",
             showaccepted=True,
         )
     """
+    
+    require_types(
+        (prompt, str),
+        (inputtype, type),
+        (showaccepted, bool),
+        (wrongtypemsg, str, None),
+        (unacceptedmsg, str, None),
+        argnames=("prompt", "inputtype", "showaccepted", "wrongtypemsg", "unacceptedmsg"),
+        func="get_input()",
+    )
 
-    require_type(prompt, str, arg="prompt", func="get_input()")
-    require_type(inputtype, type, arg="inputtype", func="get_input()")
-    require_type(showaccepted, bool, arg="showaccepted", func="get_input()")
-
-    require_type(wrongtypemsg,
-                 str,
-                 None,
-                 arg="wrongtypemsg",
-                 func="get_input()")
-
-    require_type(unacceptedmsg,
-                 str,
-                 None,
-                 arg="unacceptedmsg",
-                 func="get_input()")
-
+    # Create instance of inputtype
     _type = inputtype()
-
+    
+    # _type must be one of the following
     require_type(_type, str, int, float, complex, bool, list, tuple,
                  arg="inputtype", func="get_inputs()")
 
     check_accepted = False
     if accepted is not None:
 
-        if isinstance(accepted, (list, tuple, range, Xrange)):
+        if isinstance(accepted, (list, tuple, range)):
 
+            # Convert to list regardless of type of collection
             accepted = list(accepted)
+            
             for index, i in enumerate(accepted):
                 if not isinstance(i, inputtype):
-
+                    
+                    # Convert numbers appropriately
                     if isinstance(i, int) and inputtype is float:
                         accepted[index] = float(i)
 
@@ -451,18 +446,21 @@ def get_input(prompt: str = "",
         userinput = input(prompt)
         if check_exit:
             if userinput in exitinputs:
+                # If user enters an escape/exit keyword (if specified)
                 return defaultvalue
         try:
+            # Attempt to cast to given type
             userinput = inputtype(userinput)
         except ValueError:
             if wrongtypemsg is None:
                 errmsg("Invalid input")
             else:
+                # If user provides their own wrongtypemsg
                 errmsg(wrongtypemsg)
         else:
             if not check_accepted:
                 return userinput
-
+            
             if userinput in accepted_list:
                 return userinput
 
@@ -481,7 +479,7 @@ def as_price(number: Union[int, float], *, currency: str = "€") -> str:
     Displays an integer or float as a price (price tag & 2 decimal places)
 
     Arguments:
-        number (float, int): The number (price) to be displayed
+        number (float or int): The number (price) to be displayed
 
     Optional keyword arguments:
         currency (str): The currency symbol to be shown (e.g. "$")
@@ -490,7 +488,7 @@ def as_price(number: Union[int, float], *, currency: str = "€") -> str:
         new formatted string (str)
 
     Example use:
-        print(as_price(19.99))
+        print(as_price(20)) -> €20.00
     """
 
     require_type(number, int, float, arg="number", func="as_price()")
@@ -499,11 +497,11 @@ def as_price(number: Union[int, float], *, currency: str = "€") -> str:
     return f"{currency}{number:.2f}"
 
 
-def multiline_input(msg: str = "Enter/Paste your content."
+def multiline_input(msg: str = "Enter/Paste your content. "
                                "Ctrl-Z (or Ctrl-D) to save.") -> str:
 
     """
-    Gets a multi-line input from the user and returns a list
+    Gets a multi-line input from the user and returns it
 
     Optional arguments:
         msg (str): The prompt
@@ -525,6 +523,7 @@ def multiline_input(msg: str = "Enter/Paste your content."
             line = input()
         except EOFError:
             break
+        
         inputs.append(line)
 
     return "\n".join(inputs)
@@ -539,7 +538,7 @@ def dice_roll(*, animation: bool = True) -> int:
         animation (bool): Choose whether the animation should be shown or not
 
     Returns:
-        The random number 1-6 (int)
+        Random number 1-6 (int)
 
     Example use:
         outcome = dice_roll()
@@ -623,7 +622,7 @@ class Lorem:
             words (int): Specify a length for the sentence
 
         Example use:
-            random_sentence = lorem.sentence()'
+            random_sentence = Lorem.sentence()'
         """
 
         require_type(words,
@@ -644,6 +643,7 @@ class Lorem:
             for _ in range(random.randint(0, (sentence_len // 5)))
         ]
 
+        # Random punctuation is used to make sentences look more natural/realistic
         for p in punc_marks:
 
             random_index = random.randint(1, sentence_len - 2)
@@ -715,34 +715,6 @@ class Lorem:
                 list_len = length
 
         return [cls.word() for _ in range(list_len)]
-
-    @classmethod
-    def gettuple(cls, *args, **kwargs) -> Tuple:
-        """
-        Returns a tuple of length (10 to 20) (tuple)
-        Arguments are passed to getlist() method
-
-        Example use:
-            new_tuple = Lorem.gettuple()
-        """
-
-        return tuple(
-            cls.getlist(*args, function_name="lorem.gettuple()", **kwargs)
-        )
-
-    @classmethod
-    def getset(cls, *args, **kwargs) -> Set:
-        """
-        Returns a set of length (10 to 20) (set)
-        Arguments are passed to getlist() method
-
-        Example use:
-            new_set = Lorem.getset()
-        """
-
-        return set(
-            cls.getlist(*args, function_name="lorem.getset()", **kwargs)
-        )
 
 
 _ROMAN_NUMERALS = {
@@ -1006,7 +978,6 @@ def countdown(*args, **kwargs) -> None:
                     hours -= 1
                     minutes = 59
                     seconds = 59
-
     print()
 
 
@@ -1018,7 +989,7 @@ def huge_text(text: str, *, spacegap: int = 3) -> str:
 
     Only a few characters are supported, mainly alphanumeric & some symbols,
     as well as whitespace:
-    [a-z], [A-Z], [0-9], [any from "!"$%()-+=/.,<>'#:;[]?"]
+    [a-z], [A-Z], [0-9], [any from !"$%()-+=/.,<>'#:;[]?]
 
     Inspiration: "https://fsymbols.com/generators/tarty/"
 
@@ -1042,7 +1013,7 @@ def huge_text(text: str, *, spacegap: int = 3) -> str:
 
     chars = HUGE_LETTERS
     chars[" "] = [" " * spacegap] * 6
-
+    
     not_supported = [f"'{char}'" for char in text if char not in chars.keys()]
 
     if not_supported:
@@ -1069,14 +1040,14 @@ class StringMethods(UserString):
 
     Note:
     You can make the string mutable if you wish, simply use the keyword
-    argument "mutable" when initializing the object, for example:
-    string = StringMethods("Hello world", mutable=True)
+    argument "inplace" when initializing the object, for example:
+    string = StringMethods("Hello world", inplace=True)
 
     However, by doing this, the way you use some methods will change
     (see StringMethods.__init__ doc for more information)
 
     Inspiration:
-    Link [1]: https://www.geeksforgeeks.org/collections-userstring-in-python/
+        Link [1]: https://www.geeksforgeeks.org/collections-userstring-in-python/
     """
 
     def __init__(self, seq: str, *, inplace: bool = False) -> None:
@@ -1119,7 +1090,7 @@ class StringMethods(UserString):
         # Instance variables
         self.length = self.len = len(self.data)
         self.charlist = [i for i in self.data]
-        self.charset = set(i for i in self.data)
+        self.charset = set(self.charlist)
         self.digits = "".join(i for i in self.data if i in "0123456789")
         self.alphalower = "".join(i for i in self.data if i.islower())
         self.alphaupper = "".join(i for i in self.data if i.isupper())
@@ -1283,28 +1254,10 @@ class StringMethods(UserString):
             print(string.isemail())
         """
 
+        # Use pattern matching to validate string
         pattern = re.compile(r"\"?([-a-zA-Z\d.`?{}]+@\w+\.\w+)\"?")
 
         if re.match(pattern, self.data):
-            return True
-
-        return False
-
-    def isyes(self) -> bool:
-        """
-        Checks if string appears to be a positive response
-        (Mainly intended for input validation)
-
-        Example use:
-            print(string.isyes())
-        """
-
-        if self.data.lower() in (
-            "yes ye y sure mhm absolutely affirmative "
-            "positive true certainly yas yup yip ok okay "
-            "o.k. okie yeah yah aye alright indeed uh-huh "
-            "yis sey ya ys yus yez yess k yaz yups "
-        ).split(" "):
             return True
 
         return False
@@ -1449,7 +1402,7 @@ class StringMethods(UserString):
 
     def expand(self, spaces: int = 1, *, fill: str = " ") -> Optional[str]:
         """
-        Puts specified amt. of spaces between characters
+        Puts specified amt. of spaces/characters between characters
 
         Optional arguments:
             spaces (int): Amount of spaces between each character
@@ -1490,12 +1443,13 @@ class StringMethods(UserString):
         # "string - 1" as a statement by itself doesn't really make sense
         # "string -= 1" is better
 
-        # __sub__ Not implimented in collections.UserString, and returns the
+        # __sub__ is not implimented in collections.UserString, and returns the
         # incorrect value, so return StringMethods type manually
 
         # Compensate for mutable strings
         if self.mutable:
             return StringMethods("".join(self.data[:-n]), inplace=True)
+        
         return StringMethods("".join(self.data[:-n]))
 
     def __format__(self, format_spec: str) -> str:
@@ -1510,7 +1464,7 @@ class StringMethods(UserString):
         Example use:
             print(f"{string:hide}")
 
-        New format specifiers:
+        Available format specifiers:
             1) "hide": Hides the string (as a password; bulletpoints)
             2) "rev": Reverses the string
         """
@@ -1551,7 +1505,7 @@ class StringMethods(UserString):
             timeout (float): Time in seconds to wait after printing
                              last character
             cursor (bool) Display a cursor bar (like a typewriter)
-            pauseatchars (list): Wait for pausetimeout at these chars
+            pauseatchars (list): Wait for pausetimeout at these characters
             pausetimeout (float, int): Time in seconds to wait at each pause
 
         Example use:
@@ -1559,23 +1513,17 @@ class StringMethods(UserString):
             string.flush()
         """
 
-        # To avoid 'Dangerous default value [] as argument' warning
         pauseatchars: List = kwargs.get("pauseatchars", [])
-
         pausetimeout: Union[int, float] = kwargs.get("pausetimeout", 0.01)
-
-        require_type(timeout, float, int,
-                     arg="timeout",
-                     func="StringMethods.flush()")
-        require_type(cursor, bool,
-                     arg="cursor",
-                     func="StringMethods.flush()")
-        require_type(pauseatchars, list,
-                     arg="pauseatchar",
-                     func="StringMethods.flush()")
-        require_type(pausetimeout, float, int,
-                     arg="pausetimeout",
-                     func="StringMethods.flush()")
+        
+        require_types(
+            (timeout, float, int),
+            (cursor, bool),
+            (pauseatchars, list),
+            (pausetimeout, float, int),
+            argnames=("timeout", "cursor", "pauseatchars", "pausetimeout"),
+            func="StringMethods.flush()",
+        )
 
         cursor_bar = " "
         if cursor:
@@ -1634,6 +1582,8 @@ class StringMethods(UserString):
 
         # Returns a list, cannot change type if mutable
         # self._mutable_check not required here
+        
+        # Incorporates pattern matching
         return re.findall(("." * n) + "?", self.data)
 
     # Methods below from the str class have already been adjusted in the
@@ -1666,12 +1616,13 @@ def timethis(func):
     """
     @timethis Decorator
 
-    Calculates execution time of any function
-    It will print out the result to the screen
+    Calculates execution time of any function and
+    prints the result to the screen
 
     Example use:
         @timethis
-        def some_process(...): ...
+        def some_process(*args):
+            ...
     """
 
     @wraps(func)
@@ -1718,7 +1669,7 @@ def helpme():
         and key.endswith("__")
     ]
 
-    classes = ["colors", "Lorem", "StringMethods", "Xrange", "Table"]
+    classes = ["colors", "Lorem", "StringMethods", "Table"]
 
     all_attr = functions + dundervars + classes
     all_attr_lower = [i.lower() for i in all_attr]
@@ -1862,7 +1813,7 @@ def helpme():
                 help(value)
 
     except KeyboardInterrupt:
-        print("\nNow leaving helpme() function")
+        print("\nNow leaving helpme()")
 
 
 def for_each(obj: Iterable, func: Callable, *args, **kwargs) -> Any:
@@ -1893,147 +1844,112 @@ def for_each(obj: Iterable, func: Callable, *args, **kwargs) -> Any:
     return returns
 
 
-class Xrange:
-
+def xrange(*args, inclusive: bool = False, convertint: bool = True) -> Iterator:
     """
-    Xrange Class based on the built-in range method, but with added
-    abilities and outcomes, which may be useful.
+    The xrange() function is similar to the built-in range function, but
+    has the added optional ability of using floating-point numbers
+    
+    This function generates a sequence of numbers within a specified range,
+    beginning at the start value (which defaults to 0) and incrementing
+    (or decrementing) by a set step value (defaulting to 1). The sequence ends
+    before (or at) the specified stop value.
+    
+    Positional arguments:
+        
+        (All values can be integers or floats)
+        
+        Values depend on the position of each argument:
+        
+        1 arg: xrange(stop)
+        2 args: xrange(start, stop)
+        3 args: xrange(start, stop, step)
+    
+    Optional keyword arguments:
+        convertint (bool): Convert floats with finite integral
+                           value to int (default: True)
+        inclusive (bool):  Stop at the stop value instead of before it
+                           (default: False)
+    
+    Note:
+    The step value may not reach the exact stop value and will instead reach
+    the closest value when incrementing or decrementing the start value.
 
-    Return object that produces numbers from start (inclusive)
-    to stop (exclusive, unless argument inclusive = True), and increases,
-    (or decreases) by the given value for step (positive or negative)
+    Returns:
+        xrange (iterator): Iterator of the values provided
+
+    Example use:
+        for i in xrange(0, 10, 0.01, inclusive=True):
+            print(i, end=", ")
+    
     """
+    
+    require_type(inclusive, bool, arg="inclusive", func="xrange()")
+    require_type(convertint, bool, arg="inclusive", func="xrange()")
+    
+    lenargs = len(args)
+    if lenargs > 3:
+        raise ValueError(f"xrange expected at most 3 "
+                         f"positional arguments, got {lenargs}")
+    
+    if lenargs == 0:
+        raise ValueError("xrange expected 1 positional argument, got 0")
+    
+    start: Union[int, float] = 0
+    step: Union[int, float] = 1
+    stop: Union[int, float]
 
-    def __init__(self,
-                 *args,
-                 convertint: bool = True,
-                 inclusive: bool = False) -> None:
+    if lenargs == 1:
+        stop, = args
 
-        """
-        Xrange class constructor method
+    elif lenargs == 2:
+        start, stop = args
 
-        Positional arguments:
-
-            (all can be int or float)
-
-            Minimum: 1 argument
-            Maximum: 3 arguments
-
-            Values depend on position of arguments
-
-            1 arg:  Xrange(stop)
-            2 args: Xrange(start, stop)
-            3 args: Xrange(start, stop, step)
-
-        Optional keyword arguments:
-            convertint (bool): Convert floats with finite integral
-                            value to int (default: True)
-            inclusive (bool):  Change the final value to the stop value,
-                            instead of stop minus step (default: False)
-
-        Returns:
-            Xrange (iterator): Iterator of the values provided
-
-        Example use:
-            for i in Xrange(0, 100, 0.01, inclusive=True):
-                print(i, end=", ")
-        """
-
-        require_type(convertint,
-                     bool,
-                     arg="convertint",
-                     func="Xrange.__init__()")
-        require_type(inclusive,
-                     bool,
-                     arg="inclusive",
-                     func="Xrange.__init__()")
-
-        for arg in args:
-            argtype = type(arg).__name__
-            if not isinstance(arg, (float, int)):
-                raise TypeError(
-                    f"Arg must be float or int, not {argtype}"
-                )
-
-        self.start: Union[int, float] = 0
-        self.step: Union[int, float] = 1
-
-        if len(args) == 1:
-            self.end, = args
-
-        elif len(args) == 2:
-            self.start, self.end = args
-
-        elif len(args) == 3:
-            self.start, self.end, self.step = args
-
-        elif len(args) > 3:
-            raise ValueError(f"Xrange expected at most 3 "
-                             f"positional arguments, got {len(args)}")
-
-        else:
-            raise ValueError("Xrange expected 1 positional argument, got 0")
-
-        if not inclusive:
-            self.end -= self.step
-
-        self.first = self.start
-        self.convertint = convertint
-
-        if self.step == 0:
-            raise ValueError("\n\nstep value cannot be 0")
-
-        for i in (self.start, self.end, self.step):
-            try:
-                len(str(float(i)).split(".")[1])
-            except IndexError:
-                raise ValueError("\n\nValues cannot have more than 4 "
-                                 "decimal places\nmin: 0.0001 or max: -0.0001")
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-
-        # Stop iteration on these cases:
-
-        # range(1, 10, -1) -> None
-        if self.step < 0:
-            if self.start < self.end:
-                raise StopIteration
-
-        # range(10, 1) -> None
-        elif self.step > 0:
-            if self.start > self.end:
-                raise StopIteration
-
-        if (self.start <= self.end) or (self.start >= self.end):
-
-            previous = self.start
-
-            if isinstance(self.step, int):
-                self.start += self.step
-
+    elif lenargs == 3:
+        start, stop, step = args
+        
+    if step == 0:
+        raise ValueError("step value cannot be 0")
+    
+    if not inclusive:
+        stop -= step
+        
+    # Limit amount of decimal values (3) allowed,
+    # in order to prevent floating-point addition/subtraction errors
+    for arg_name, a in zip(["start", "stop", "step"], [start, stop, step]):
+        
+        require_type(a, float, int, arg=arg_name, func="xrange()")
+        
+        decimal_places = str(a)[::-1].find('.')
+        if decimal_places > 3:
+            raise ValueError(f"{arg_name} value cannot have more than 3 decimal values")
+    
+    if (step < 0 and start < stop) or (step > 0 and start > stop):
+        return None
+    
+    first_value = start
+    
+    def condition() -> bool:
+        # Condition is different if decrementing
+        # rather than incrementing
+        
+        if first_value >= stop:
+            return start >= stop
+        
+        return start <= stop
+    
+    while condition():
+        
+        start = round(start, 4)
+        
+        if convertint:
+            if float(start).is_integer():
+                yield int(start)
             else:
-                # For floating point rounding errors
-                dec_points_first = len(str(float(self.first)).split(".")[1])
-                dec_points_step = len(str(float(self.step)).split(".")[1])
-
-                roundto = max(dec_points_first, dec_points_step)
-
-                self.start += self.step
-                self.start = round(self.start, roundto)
-
-            if self.convertint:
-                if float(previous).is_integer():
-                    return int(previous)
-
-            return previous
-
-        raise StopIteration
-
-    def __repr__(self):
-        return f"Xrange({self.first}, {self.end}, {self.step})"
+                yield start
+        else:
+            yield round(start, 4)
+        
+        start += step
 
 
 def menu(*args,
@@ -2047,7 +1963,7 @@ def menu(*args,
          ) -> None:
 
     """
-    Print out a nice menu with this function, with lots of customisation
+    Prints out a nice menu, with lots of customisation
 
     Arguments:
         Positional arguments will be printed out as an "option" in the menu
@@ -2070,11 +1986,11 @@ def menu(*args,
 
     Example use:
         lst = ["option 1", "option 2", "option 3"]
-        menu(lst)
+        menu(*lst)
     """
 
     if len(args) < 1:
-        raise ValueError("menu() expected 1 argument, got none")
+        raise ValueError("menu() expected 1 argument, got 0")
 
     require_type(verticalspacing,
                  int,
@@ -2102,6 +2018,7 @@ def menu(*args,
         "double": 4,
     }.get(border, 1)
 
+    # Various styles
     horizontal = ["━", "─", "-", "~", "═"]
     vertical = ["┃", "│", "¦", "¦", "║"]
     topright = ["┓", "┐", "+", "~", "╗"]
@@ -2160,16 +2077,51 @@ def menu(*args,
 
 
 class Table:
+    
+    """
+    A class to store tables of data.
+    Table cells with no specified value will be set to None.
+    
+    Note:
+        Large tables may require a lot of memory, thus
+        reducing their efficiency
+    """
 
     def __init__(self,
                  rownum: int,
                  colnum: int,
                  *,
+                 nullvalues: bool = True,
                  align: str = "left",
                  justify: int = 15,
                  index: bool = False,
                  indexheader: str = "",
                  headernewline: str = "\n"):
+        
+        """
+        Table class constructor
+        
+        Positional arguments:
+            rownum (int): Number of rows
+            colnum (int): Number of columns
+        
+        Optional keyword arguments:
+            nullvalues (bool): Display 'None' for each cell with no
+                               specified value (default: True)
+            align (str): Specify how to align the table's items
+                         (left, right or center)
+            justify (str): Amount of padding/spaces
+            index (bool): Display indexes for each row (default: False)
+            indexheader (str): String to display on top of the indexes (default: "")
+            headernewline (str): String to display after the headers (default: "\n")
+        
+        Example use:
+            my_table = Table(10, 5)
+            
+            my_table[0][1] = "x"
+                     ^  ^
+                   row  column
+        """
 
         require_type(rownum, int, arg="rownum", func="Table.__init__()")
         require_type(colnum, int, arg="colnum", func="Table.__init__()")
@@ -2191,16 +2143,30 @@ class Table:
         self.index = index
         self.indexheader = indexheader
         self.headernewline = headernewline
+        self.nullvals = nullvalues
 
         self.__headers: List[List[Any]] = [None] * self.colnum
         self.__rows: List[List[Any]] = [[None] * self.colnum for i in range(self.rownum)]
 
     @property
-    def rows(self):
+    def rows(self) -> list:
         return self.__rows
 
     @rows.setter
-    def rows(self, value: list):
+    def rows(self, value: list) -> None:
+        
+        """
+        Create your own rows from a list of lists,
+        which each contain column values
+        
+        Arguments:
+            value (list): The list of rows
+        
+        Example use:
+            my_table = Table(3, 3)
+            
+            my_table.rows = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        """
 
         require_type(value, list, arg="value", func="rows")
 
@@ -2214,15 +2180,28 @@ class Table:
         self.__rows = value
 
     @rows.deleter
-    def rows(self):
+    def rows(self) -> None:
+        """ Delete/reset rows """
+        
         self.__rows = [[None] * self.colnum for i in range(self.rownum)]
 
     @property
-    def headers(self):
+    def headers(self) -> list:
         return self.__headers
 
     @headers.setter
-    def headers(self, value: List[Any]):
+    def headers(self, value: List[Any]) -> None:
+        
+        """
+        Set the headers of the table
+        
+        Arguments:
+            value (list): List containing headers
+        
+        Example use:
+            my_table = Table(3, 3)
+            my_table.headers = ["header 1", "header 2", "header 3"]
+        """
 
         require_type(value, list, arg="value", func="headers")
 
@@ -2232,10 +2211,26 @@ class Table:
         self.__headers = value
 
     @headers.deleter
-    def headers(self):
+    def headers(self) -> None:
+        """ Delete/reset headers """
+        
         self.__headers = [None] * 6
 
-    def get(self, row: int, col: int):
+    def get(self, row: int, col: int) -> Any:
+        """
+        Returns the value in the specified row and column
+        
+        Arguments:
+            row (int): Number/index of row
+            col (int): Number/index of column
+        
+        Example use:
+            my_table = Table(3, 3)
+            my_table[0][1] = "hi"
+            
+            print(my_table.get(0, 1)) -> "hi"
+        """
+
         require_type(row, int, arg="row", func="Table.getitem()")
         require_type(col, int, arg="col", func="Table.getitem()")
 
@@ -2246,11 +2241,15 @@ class Table:
 
         return returnval
 
-    def alignitem(self, item: Any) -> str:
-
+    def _alignitem(self, item: Any) -> str:
         """
         Aligns an item as specified by self.align
         and self.justify
+        
+        Intended for inner use only
+        
+        Arguments:
+            item (Any): Item to be aligned
         """
 
         if self.align == "left":
@@ -2261,7 +2260,20 @@ class Table:
 
         return str(item).center(self.justify)
 
-    def __setitem__(self, key: int, value: list):
+    def __setitem__(self, key: int, value: list) -> None:
+        """
+        Updates the columns at key's index
+        
+        Arguments:
+            key (int): Index (row)
+            value (list): List of column values
+            
+        Example use:
+            my_table = Table(3, 3)
+            my_table[0] = [1, 2, 3]
+                     ^
+            The 0th (first) row will be set to [1, 2, 3]
+        """
 
         require_type(key, int, arg="key", func="Table.__setitem__")
         require_type(value, list, arg="value", func="Table.__setitem__")
@@ -2274,7 +2286,20 @@ class Table:
 
         self.__rows[key] = value
 
-    def __getitem__(self, key: int):
+    def __getitem__(self, key: int) -> list:
+        
+        """
+        Gets the columns at key's index
+        
+        Arguments:
+            key (int): Index (row)
+        
+        Example use:
+            my_table = Table(3, 3)
+            
+            print(my_table[0]) -> [None, None, None]
+        
+        """
 
         require_type(key, int, arg="key", func="Table.__setitem__")
 
@@ -2284,21 +2309,30 @@ class Table:
         return self.__rows[key]
 
     def __str__(self) -> str:
-
-        _rows = self.__rows
+        """
+        Returns the table in a formatted string
+        """
+        
+        _rows = self.__rows.copy()
+        
+        if not self.nullvals:
+            for r_index, r in enumerate(_rows):
+                for c_index, c in enumerate(r):
+                    if c is None:
+                        _rows[r_index][c_index] = "    "
 
         s = ""
         if self.__headers != [None] * self.colnum:
-            s += "".join(self.alignitem(col) for col in self.__headers) + self.headernewline
+            s += "".join(self._alignitem(col) for col in self.__headers) + self.headernewline
             if self.index:
-                s = self.alignitem(self.indexheader) + s
+                s = self._alignitem(self.indexheader) + s
 
         if self.index:
             for i in range(self.rownum):
                 _rows[i].insert(0, i)
 
         s += "\n".join(
-            "".join(self.alignitem(col) for col in row) for row in _rows
+            "".join(self._alignitem(col) for col in row) for row in _rows
         )
 
         return s
@@ -2307,7 +2341,7 @@ class Table:
         return f"Table(rownum={self.rownum}, colnum={self.colnum}, align={self.align}, justify={self.justify})"
 
 
-def as_word(num: Union[float, int], *, zero: bool = True) -> str:
+def num_to_word(num: Union[float, int], *, _zero_: bool = True) -> str:
     """
     Converts a word to its English word representation
     
@@ -2315,18 +2349,18 @@ def as_word(num: Union[float, int], *, zero: bool = True) -> str:
         num (int): Number to be converted
     
     Example use:
-        print(as_word(123.5)) -> "one hundred twenty-three point five"
-        print(as_word(3523)) -> "three thousand five hundred twenty-three"
+        print(num_to_word(123.5)) -> "one hundred twenty-three point five"
+        print(num_to_word(3523)) -> "three thousand five hundred twenty-three"
         
     Note:
-    Highest number = 10^100 (1 Googol)
+        Highest number = 10^100 (1 Googol)
     """
     
-    require_type(num, float, int, arg="num", func="as_word()")
-    require_type(zero, bool, arg="zero", func="as_word()", accepted=(True,))
+    require_type(num, float, int, arg="num", func="num_to_word()")
+    require_type(_zero_, bool, arg="zero", func="num_to_word()")
     
     # Intended for inner use only
-    if num == 0 and zero:
+    if num == 0 and _zero_:
         return "zero"
 
     def formatstr(string: str) -> str:
@@ -2382,13 +2416,13 @@ def as_word(num: Union[float, int], *, zero: bool = True) -> str:
         raise ValueError("Number is too large -> Max: 10^100")
     
     if num < 0:
-        return formatstr("negative " + as_word(abs(num), zero=False))
+        return formatstr("negative " + num_to_word(abs(num), _zero_=False))
     
     if "." in numstr:
         
         first, second = numstr.split(".")
         
-        decimal = " point " + " ".join([as_word(int(i), zero=False) for i in second])
+        decimal = " point " + " ".join([num_to_word(int(i), _zero_=False) for i in second])
         
         # Common decimal place names
         if int(second) == 125: decimal = " and one eight"
@@ -2409,7 +2443,7 @@ def as_word(num: Union[float, int], *, zero: bool = True) -> str:
         elif int(second) == 8: decimal = " and four fifths"
         elif int(second) == 9: decimal = " and nine tenths"
             
-        return formatstr(as_word(int(first), zero=False) + decimal)
+        return formatstr(num_to_word(int(first), _zero_=False) + decimal)
     
     if num in numdict and num != 0:
         return formatstr(numdict[int(num)])
@@ -2418,7 +2452,7 @@ def as_word(num: Union[float, int], *, zero: bool = True) -> str:
         return formatstr(numdict[int(numstr[0] + "0")] + "-" + numdict[int(numstr[1])])
 
     if numlen < 4 and num != 0:
-        return formatstr(as_word(int(numstr[0]), zero=False)) + " hundred " + as_word(int(numstr[1:]), zero=False)
+        return formatstr(num_to_word(int(numstr[0]), _zero_=False)) + " hundred " + num_to_word(int(numstr[1:]), _zero_=False)
     
     names = [
         "thousand", "million", "billion", "trillion", "quadrillion",
@@ -2433,22 +2467,19 @@ def as_word(num: Union[float, int], *, zero: bool = True) -> str:
     
     if numlen in range(4, 100_000, 3):
         name = names[(numlen // 3) - 1]
-        return formatstr(as_word(int(numstr[0]), zero=False) + f" {name} " + as_word(int(numstr[1:]), zero=False))
+        return formatstr(num_to_word(int(numstr[0]), _zero_=False) + f" {name} " + num_to_word(int(numstr[1:]), _zero_=False))
     
     if numlen in range(5, 100_000, 3):
         name = names[(numlen // 3) - 1]
-        return formatstr(as_word(int(numstr[0:2]), zero=False) + f" {name} " + as_word(int(numstr[2:]), zero=False))
+        return formatstr(num_to_word(int(numstr[0:2]), _zero_=False) + f" {name} " + num_to_word(int(numstr[2:]), _zero_=False))
     
     if numlen in range(6, 100_000, 3):
         name = names[(numlen // 3) - 2]
-        return formatstr(as_word(int(numstr[0:3]), zero=False) + f" {name} " + as_word(int(numstr[3:]), zero=False))
+        return formatstr(num_to_word(int(numstr[0:3]), _zero_=False) + f" {name} " + num_to_word(int(numstr[3:]), _zero_=False))
     
     return ""
 
+
 if __name__ == "__main__":
     
-    pass
-
-    # TODO: Xrange testing
-    # TODO: for_each testing
-    # TODO: Fix countdown
+    helpme()
