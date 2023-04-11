@@ -2,8 +2,7 @@
 Darragh's Library is a Python module containing various functions, classes, etc. It contains bundles of code that can be used in many different programs, and it makes working with Python simpler and more efficient.
 
 ### Installation
-I am currently working on uploading this library to PyPi.
-If you want to, you can download the files now:
+To download the files:
 
 1. Navigate to the top right of this repository
 2. You should see a green `<> Code` button
@@ -12,7 +11,7 @@ If you want to, you can download the files now:
 
 ![image 1](images/ss1.png)
 
-From here, you can extract the main folder ("__init__.py").
+From here, you can extract the main folder ("main.py").
 To import the module into your own new Python file, create that file in the same folder.
 
 ### Using the module

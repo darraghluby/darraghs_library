@@ -3,7 +3,7 @@ Darragh's Library - main.py
 
 Darragh's Library is a Python module containing various functions,
 classes, etc. It contains bundles of code that can be used in many
-different programs,and it makes working with Python simpler and
+different programs, and it makes working with Python simpler and
 more efficient.
 """
 
@@ -14,7 +14,7 @@ __all__ = [
     "dice_roll", "errmsg", "file_exists", "for_each", "get_input", "helpme",
     "huge_text", "install_module", "int_to_roman", "menu", "multiline_input",
     "printf", "require_type", "require_types", "roman_to_int", "successmsg",
-    "timethis", "num_to_word", "Table",
+    "timethis", "num_to_word", "Table", "num_to_word"
 ]
 
 __author__ = "Darragh Luby"
@@ -28,7 +28,7 @@ import re
 import time
 from subprocess import CalledProcessError, check_call
 from sys import executable, stderr
-from functools import wraps
+from functools import wraps, cache
 from collections import UserString
 
 # Related modules
@@ -44,7 +44,6 @@ from modules.type_validation import (
     List,
     Optional,
     Union,
-    Tuple,
 )
 
 # System call - Activate ANSI codes in terminal
@@ -52,22 +51,22 @@ from modules.type_validation import (
 os.system("")
 
 
-def printf(*arguments,
-           showerror: bool = True,
-           showexamples: bool = False,
+def printf(*strings: str,
+           invalid_error: bool = True,
+           help: bool = False,
            **kwargs) -> None:
-
+    
     """
     Print colored/decorated text
 
     Optional keyword arguments:
-        showerror (bool): Display an error when unmatched tags are detected
-        showexamples (bool): Display example of every tag name
+        invalid_error (bool): Display an error for unrecognized tags
+        help (bool): Display example of every tag name
 
     Other keyword arguments are passed to print()
 
     Below are all the available tag names
-    (use printf(showexamples=True) for examples)
+    (use printf(help=True) for examples)
 
     COLOR TAG NAMES:
 
@@ -95,7 +94,7 @@ def printf(*arguments,
     function, with all the same keyword arguments.
 
     To use a tag, you wrap your chosen color or formatting option
-    with less-than (<) and greater-than (>) signs. Then, that style
+    with less-than (<) and greater-than (>) symbols. Then, that style
     will be applied to anything following, until you use a closing tag.
 
     You can think of this like using HTML tags; first use the
@@ -107,145 +106,113 @@ def printf(*arguments,
              tag                tag
 
     The text inside the tags will be decorated with the style(s) you choose.
-    Opening tags that don't have a matching closing tag will not be applied,
-    and vise versa.
-
-    If you don't have a closing tag, an error will be raised, unless the
-    optional argument is manually set to False.
-
-    Unrecognised tags will be treated as text.
-
-    The <none> tag does not require a closing tag. It will just reset all
-    formatting and colors to the default.
+    Opening tags that don't have a matching closing tag will be applied until
+    the end of the string.
+    Closing tags that don't have a matching opening tag will raise an error.
+    
+    Unrecognised tags will also raise an error, unless the "invalid_error"
+    argument is set to False, in which case, they will be treated as plain text.
+    
+    If for any reason you want to display the tag as text instead of its value,
+    you can use a forward slash before the tag (e.g. "/<blue>")
 
     HINT: If you use Visual Studio Code, there is an extension named
     "Auto Rename Tag", which may be useful as it works while using this
-    function
+    function.
     """
+    
+    require_type(invalid_error, bool, arg="invalid_error", func="printf()")
+    require_type(help, bool, arg="help", func="printf()")
+    
+    color_vars = vars(colors).items()
 
     # Get all variables from the "colors" class
-    color_vars = {
+    tags = {
         f"<{key}>": value for key, value in
-        vars(colors).items() if "__" not in key
-        and key != "none" and key != "reset"
+        color_vars if "__" not in key and
+        key not in ("none", "reset")
     }
 
-    # Create a copy
-    formatting = color_vars.copy()
-
-    for index, (key, value) in enumerate(color_vars.items()):
-        closing_tag = "</" + key[1:]
-
-        # If foreground color
-        if index < 18:
-            formatting[closing_tag] = "\033[39m"
-
-        # If background color
-        elif index >= 18:
-            formatting[closing_tag] = "\033[49m"
-
-    # Set the rest of the keys manually
-    formatting["</bold>"] = "\033[22m"
-    formatting["</b>"] = "\033[22m"
-
-    formatting["</italic>"] = "\033[23m"
-    formatting["</i>"] = "\033[23m"
-
-    formatting["</underlined>"] = "\033[24m"
-    formatting["</u>"] = "\033[24m"
-
-    formatting["</reverse>"] = "\033[27m"
-    formatting["</r>"] = "\033[27m"
-
-    formatting["<none>"] = "\033[0;0m"
-
-    args = list(arguments)
-
-    # The point in the dictionary at which the opening tags end
-    halfway = (len(formatting) - 1) // 2
-
-    # Iterable list of all the dictionary keys
-    key_list = list(formatting.keys())
-
-    # Show example for each option
-    if showexamples:
+    if help:
+        # Show example for each tag
         printf("<bold>Available tags:\n"
                "---------------</bold>")
-        for index, i in enumerate(key_list[:halfway], 1):
-            printf(
-                f"<blue>{str(index).zfill(len(str(halfway)))}</blue> ->",
-                end=""
-            )
-            print(f"{formatting[i]}{i}{formatting['</' + i[1:]]}")
+        
+        for index, (key, value) in enumerate(tags.items()):
+            printf(f"<blue>{index:02}</blue> - "
+                   f"{key}/{key}\033[0;0m")
 
         return
+    
+    # List for new strings
+    updated_strings = []
+    
+    for string in strings:
+        
+        string = str(string)
+        
+        active = []
+        ignore_indexes = []
+    
+        while True:
+            
+            # Create a copy of the string
+            # Replace previously checked invalid tags with other characters
+            # to prevent infinite loop
+            string_copy = ""
+            for index, char in enumerate(string):
+                if index in ignore_indexes:
+                    string_copy += "|"
+                else:
+                    string_copy += char
+            
+            start = string_copy.find("<")
+            end = string_copy.find(">")
+            
+            if start == -1 or end == -1:
+                break
+            
+            escape: bool = True if string[start - 1] == "/" else False
+            
+            end += 1
+            
+            tag_name = string[start:end]
+            
+            if not escape:
+                try:
+                    tag = tags[tag_name]
+                    active.append(tag)
+                except KeyError:
+                    tag_name = tag_name.replace("/", "")
+                    if tag_name in tags:
+                        tag = "\033[0;0m"
+                        
+                        try:
+                            active.remove(tags[tag_name])
+                        except ValueError:
+                            raise ValueError(f"No opening '{tag_name}' tag")
 
-    try:
-        mainerrors = []
-        raiseerr = False
+                    else:
+                        tag = tag_name
+                        if invalid_error:
+                            raise ValueError(f"Unrecognised tag: '{tag_name}'")
+                        
+                        ignore_indexes.extend([start, end + 1])
+            
+            else:
+                tag = tag_name
+                start -= 1
+                ignore_indexes.extend([start, end - 2])
 
-        # Repeat for each separate argument given
-        for arg in args:
-
-            errors = []
-            errnum = 0
-
-            for key in key_list[:halfway]:
-
-                opening = key
-                closing = "</" + key[1:]
-
-                opening_count = arg.count(opening)
-                closing_count = arg.count(closing)
-
-                if opening_count != closing_count:
-
-                    errnum += 1
-
-                    if opening_count > closing_count:
-                        raiseerr = True
-                        errors.append(
-                            f"{errnum}) Opening '{opening}' tag does "
-                            f"not have a matching closing '{closing}' tag"
-                        )
-
-                    elif closing_count > opening_count:
-                        raiseerr = True
-                        errors.append(
-                            f"{errnum}) Closing '{closing}' tag does "
-                            f"not have a matching opening '{opening}' tag"
-                        )
-
-            if raiseerr:
-                mainerrors.append(f"\n\nArgument: \"{arg}\"\n\n"
-                                  + "\n".join(errors))
-
-        if raiseerr:
-            raise ValueError("\n".join(mainerrors))
-
-    except ValueError as errormsg:
-        if showerror:
-            raise errormsg
-
-    else:
-
-        for index, arg in enumerate(args):
-            original_arg = arg
-
-            for key in formatting:
-                if key in key_list[:halfway]:
-                    if "</" + key[1:] in arg:
-                        arg = arg.replace(key, formatting[key])
-                elif key in key_list[halfway:]:
-                    if "<" + key[2:] in original_arg:
-                        arg = arg.replace(key, formatting[key])
-
-            arg = arg.replace("<none>", formatting["<none>"]
-                              ).replace("</none>", formatting["<none>"])
-
-            args[index] = arg
-
-    print(*args, **kwargs)
+            stillactive = ""
+            for i in active:
+                stillactive += i
+            
+            string = string[:start] + tag + stillactive + string[end:]
+        
+        updated_strings.append(string + "\033[0;0m")
+        
+    print(*updated_strings, **kwargs)
 
 
 def errmsg(*args, **kwargs) -> None:
@@ -2341,9 +2308,10 @@ class Table:
         return f"Table(rownum={self.rownum}, colnum={self.colnum}, align={self.align}, justify={self.justify})"
 
 
+@cache
 def num_to_word(num: Union[float, int], *, _zero_: bool = True) -> str:
     """
-    Converts a word to its English word representation
+    Converts a word into its English word representation
     
     Arguments:
         num (int): Number to be converted
@@ -2482,4 +2450,4 @@ def num_to_word(num: Union[float, int], *, _zero_: bool = True) -> str:
 
 if __name__ == "__main__":
     
-    helpme()
+    pass
