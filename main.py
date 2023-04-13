@@ -14,7 +14,7 @@ __all__ = [
     "dice_roll", "errmsg", "file_exists", "for_each", "get_input", "helpme",
     "huge_text", "install_module", "int_to_roman", "menu", "multiline_input",
     "printf", "require_type", "require_types", "roman_to_int", "successmsg",
-    "timethis", "num_to_word", "Table", "num_to_word"
+    "timethis", "num_to_word", "Table",
 ]
 
 __author__ = "Darragh Luby"
@@ -172,6 +172,7 @@ def printf(*strings: str,
             if start == -1 or end == -1:
                 break
             
+            # True if "/" is before string
             escape: bool = True if string[start - 1] == "/" else False
             
             end += 1
@@ -211,7 +212,8 @@ def printf(*strings: str,
             string = string[:start] + tag + stillactive + string[end:]
         
         updated_strings.append(string + "\033[0;0m")
-        
+    
+    # Pass remaining keyword arguments to print()
     print(*updated_strings, **kwargs)
 
 
@@ -482,7 +484,9 @@ def multiline_input(msg: str = "Enter/Paste your content. "
 
     require_type(msg, str, arg="msg", func="multiline_input")
 
-    print(msg)
+    print(msg)  # Prompt
+    
+    # Add each line to this list
     inputs = []
 
     while True:
@@ -684,6 +688,7 @@ class Lorem:
         return [cls.word() for _ in range(list_len)]
 
 
+# Constant used in next 2 functions
 _ROMAN_NUMERALS = {
     "I": 1,
     "IV": 4,
@@ -978,7 +983,7 @@ def huge_text(text: str, *, spacegap: int = 3) -> str:
 
     text = text.lower()
 
-    chars = HUGE_LETTERS
+    chars = HUGE_LETTERS  # Imported constant
     chars[" "] = [" " * spacegap] * 6
     
     not_supported = [f"'{char}'" for char in text if char not in chars.keys()]
@@ -1601,8 +1606,12 @@ def timethis(func):
 
         printf(f"<green>Called function '{func.__name__}'</green>")
 
+        # Begin timer
         start_time = time.time()
+        
         result = func(*args, **kwargs)
+        
+        # End timer
         total_time = f"{time.time() - start_time:.2f}"
 
         # Join the all_args list with commas & spaces
@@ -2447,7 +2456,3 @@ def num_to_word(num: Union[float, int], *, _zero_: bool = True) -> str:
     
     return ""
 
-
-if __name__ == "__main__":
-    
-    pass
