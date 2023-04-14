@@ -1637,7 +1637,7 @@ def helpme():
     functions = [
         key for key, value in globals().items()
         if type(value).__name__ == "function"
-        if key not in ("wraps", "check_call")
+        if key not in ("wraps", "check_call", "cache")
     ]
 
     dundervars = [

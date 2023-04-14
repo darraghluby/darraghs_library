@@ -11,8 +11,8 @@ To download the files:
 
 ![image 1](images/ss1.png)
 
-From here, you can extract the main folder ("main.py").
-To import the module into your own new Python file, create that file in the same folder.
+From here, you can extract the main folder.
+To import the module into your own new Python file, create that file in the same folder as "main.py" and use "import main" or "from main import *".
 
 ### Using the module
 There are lots of functions and classes available that you may find useful.

@@ -86,3 +86,4 @@ class colors:
     # RESET ALL
     none = "\033[0;0m"
     reset = "\033[0;0m"
+

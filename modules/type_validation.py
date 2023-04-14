@@ -215,6 +215,3 @@ def require_types(*args: Tuple[Any, ...],
         require_type(arg[0], *_types, arg=argname, func=func_name)
 
 
-if __name__ == "__main__":
-
-    pass
